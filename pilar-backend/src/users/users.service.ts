@@ -1,4 +1,3 @@
-// Tambahkan BadRequestException pada import
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -43,7 +42,7 @@ export class UsersService {
     };
   }
 
-  // --- TAMBAHAN BARU: Logika Ganti Password ---
+  // Logika Ganti Password
   async changePassword(userId: string, passwordLama: string, passwordBaru: string) {
     // 1. Cari user di database
     const user = await this.prisma.user.findUnique({
@@ -51,7 +50,7 @@ export class UsersService {
     });
     if (!user) throw new NotFoundException('User tidak ditemukan');
 
-    // 2. Cek apakah password lama cocok dengan yang ada di database
+    // 2. Cek apakah password lama cocok
     const isPasswordValid = await bcrypt.compare(passwordLama, user.password);
     if (!isPasswordValid) {
       throw new BadRequestException('Password lama salah');

@@ -35,7 +35,7 @@ export class UsersController {
     return this.usersService.getStats(req.user.id);
   }
 
-  // --- TAMBAHAN BARU: Endpoint Ganti Password ---
+  // Endpoint Ganti Password
   @UseGuards(JwtAuthGuard)
   @Patch('password')
   changePassword(@Request() req, @Body() body: any) {
