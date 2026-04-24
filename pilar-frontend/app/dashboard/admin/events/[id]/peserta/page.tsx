@@ -31,3 +31,12 @@ export default function PesertaPage() {
     finally { setLoading(false); }
   };
 }
+
+  // #PBI17 - Update Status Partisipasi: Mengirim perubahan status (Terima/Tolak) ke API
+    const updateStatus = async (pendaftaranId: string, status: 'APPROVED' | 'REJECTED') => {
+    try {
+      await api.patch(`/pendaftaran/${pendaftaranId}/status`, { status });
+      toast.success(status === 'APPROVED' ? 'Relawan diterima' : 'Relawan ditolak');
+      fetchData();
+    } catch { toast.error('Gagal mengubah status'); }
+  };

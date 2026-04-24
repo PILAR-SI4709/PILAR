@@ -86,3 +86,28 @@ export class PendaftaranService {
     });
   } 
 }
+
+  async findOne(id: string) {
+    const data = await this.prisma.pendaftaran.findUnique({
+      where: { id },
+      include: {
+        user: { select: { id: true, nama: true, email: true, foto: true } },
+        event: { select: { id: true, judul: true, tanggal: true, lokasi: true } },
+      },
+    });
+    if (!data) throw new NotFoundException('Pendaftaran tidak ditemukan');
+    return data;
+  }
+
+    // #PBI17 - Update Status Partisipasi: Memperbarui status pendaftaran menjadi APPROVED atau REJECTED
+  async updateStatus(id: string, dto: UpdateStatusDto) {
+    await this.findOne(id);
+    return this.prisma.pendaftaran.update({
+      where: { id },
+      data: { status: dto.status },
+      include: {
+        user: { select: { nama: true, email: true } },
+        event: { select: { judul: true } },
+      },
+    });
+  }

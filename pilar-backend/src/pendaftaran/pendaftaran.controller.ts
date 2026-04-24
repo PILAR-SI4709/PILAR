@@ -46,3 +46,8 @@ export class PendaftaranController {
     return this.pendaftaranService.findOne(id);
   }
 }
+
+  // #PBI17 - Update Status Partisipasi: Admin mengubah status pendaftaran (APPROVED/REJECTED)
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
+    return this.pendaftaranService.updateStatus(id, dto);
+  }
