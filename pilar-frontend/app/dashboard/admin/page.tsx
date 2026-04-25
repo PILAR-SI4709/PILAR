@@ -7,6 +7,8 @@ import api from '@/lib/api';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
+// Logic untuk menampilkan jumlah relawan
+
 export default function DashboardUser() {
   const { user, loadFromStorage } = useAuthStore();
   const [pendaftaran, setPendaftaran] = useState<any[]>([]);
