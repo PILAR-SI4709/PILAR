@@ -62,8 +62,14 @@ export class EventsService {
     const event = await this.findOne(id);
     if (event.adminId !== adminId)
       throw new ForbiddenException('Tidak punya akses');
+
     await this.prisma.event.delete({ where: { id } });
-    return { message: 'Event berhasil dihapus' };
+
+    // hapus event notif
+    return {
+      message: 'Event berhasil dihapus',
+      deletedId: id,
+    };
   }
 
   // Statistik dashboard
