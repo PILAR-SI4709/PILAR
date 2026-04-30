@@ -67,7 +67,7 @@ export class EventsService {
 
     // hapus event notif
     return {
-      message: 'Event berhasil dihapus',
+      message: 'Event berhasil dihapus!',
       deletedId: id,
     };
   }
