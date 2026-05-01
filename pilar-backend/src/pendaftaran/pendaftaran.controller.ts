@@ -1,4 +1,12 @@
 import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  UseGuards,
+  Request,
   Controller, Get, Post, Patch,
   Body, Param, UseGuards, Request,
 } from '@nestjs/common';
@@ -51,4 +59,5 @@ export class PendaftaranController {
   updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
     return this.pendaftaranService.updateStatus(id, dto);
   }
+}
 }

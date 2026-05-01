@@ -1,4 +1,6 @@
 import {
+  Injectable,
+  BadRequestException,
   Injectable, BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
@@ -61,8 +63,12 @@ export class PendaftaranService {
       include: {
         event: {
           select: {
-            id: true, judul: true, tanggal: true,
-            lokasi: true, gambar: true, status: true,
+            id: true,
+            judul: true,
+            tanggal: true,
+            lokasi: true,
+            gambar: true,
+            status: true,
           },
         },
       },
@@ -76,8 +82,11 @@ export class PendaftaranService {
       include: {
         user: {
           select: {
-            id: true, nama: true, email: true,
-            foto: true, noHp: true,
+            id: true,
+            nama: true,
+            email: true,
+            foto: true,
+            noHp: true,
           },
         },
       },
@@ -90,6 +99,9 @@ export class PendaftaranService {
       where: { id },
       include: {
         user: { select: { id: true, nama: true, email: true, foto: true } },
+        event: {
+          select: { id: true, judul: true, tanggal: true, lokasi: true },
+        },
         event: { select: { id: true, judul: true, tanggal: true, lokasi: true } },
       },
     });
@@ -115,4 +127,5 @@ export class PendaftaranService {
     });
     return { terdaftar: !!data, status: data?.status || null };
   }
+}
 }
