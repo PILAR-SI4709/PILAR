@@ -65,4 +65,27 @@ export class AuthService {
     const { password: _, ...result } = user;
     return result;
   }
+
+  async oauthLogin(data: { nama: string; email: string; foto?: string; provider: string }) {
+  let user = await this.prisma.user.findUnique({ where: { email: data.email } });
+  if (!user) {
+    user = await this.prisma.user.create({
+      data: {
+        nama: data.nama,
+        email: data.email,
+        foto: data.foto,
+        password: '', // OAuth user tidak butuh password
+        role: 'USER',
+      },
+    });
+  }
+  const payload = { sub: user.id, email: user.email, role: user.role };
+  const { password: _, ...userWithoutPw } = user;
+  return {
+    access_token: this.jwtService.sign(payload),
+    user: userWithoutPw,
+  };
+}
+
+
 }
