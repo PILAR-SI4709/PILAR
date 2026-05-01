@@ -84,7 +84,6 @@ model Pendaftaran {
 
   user        User        @relation(fields: [userId], references: [id])
   event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  event       Event       @relation(fields: [eventId], references: [id])
   sertifikat  Sertifikat?
 
   @@unique([userId, eventId])
@@ -100,7 +99,6 @@ model Dokumentasi {
   createdAt DateTime @default(now())
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  event Event @relation(fields: [eventId], references: [id])
   user  User  @relation(fields: [userId], references: [id])
 
   @@map("dokumentasi")
@@ -115,7 +113,6 @@ model Sampah {
   createdAt DateTime @default(now())
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  event Event @relation(fields: [eventId], references: [id])
 
   @@map("sampah")
 }
@@ -131,8 +128,7 @@ model Sertifikat {
   user        User        @relation(fields: [userId], references: [id])
   event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
   pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
-  event       Event       @relation(fields: [eventId], references: [id])
-  pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id])
 
   @@map("sertifikat")
 }
+
