@@ -83,4 +83,4 @@ export class EventsService {
       totalSampahKg: sampahData._sum.jumlahKg || 0,
     };
   }
-}
+} 

@@ -86,4 +86,4 @@ export class EventsController {
     const url = `http://localhost:3001/uploads/events/${file.filename}`;
     return { url };
   }
-}
+} 
