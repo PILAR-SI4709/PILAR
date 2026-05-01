@@ -1,6 +1,7 @@
 import {
   Injectable,
   BadRequestException,
+  Injectable, BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -17,7 +18,8 @@ export class PendaftaranService {
       where: { id: dto.eventId },
       include: { _count: { select: { pendaftaran: true } } },
     });
-    if (!event) throw new NotFoundException('Event tidak ditemukan');
+    if (!event)
+      throw new NotFoundException('Event tidak ditemukan');
 
     // 2. Cek event masih bisa didaftar
     if (event.status === 'DONE')
@@ -100,6 +102,7 @@ export class PendaftaranService {
         event: {
           select: { id: true, judul: true, tanggal: true, lokasi: true },
         },
+        event: { select: { id: true, judul: true, tanggal: true, lokasi: true } },
       },
     });
     if (!data) throw new NotFoundException('Pendaftaran tidak ditemukan');
@@ -124,4 +127,5 @@ export class PendaftaranService {
     });
     return { terdaftar: !!data, status: data?.status || null };
   }
+}
 }

@@ -7,6 +7,8 @@ import {
   Param,
   UseGuards,
   Request,
+  Controller, Get, Post, Patch,
+  Body, Param, UseGuards, Request,
 } from '@nestjs/common';
 import { PendaftaranService } from './pendaftaran.service';
 import { CreatePendaftaranDto } from './dto/create-pendaftaran.dto';
@@ -57,4 +59,5 @@ export class PendaftaranController {
   updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
     return this.pendaftaranService.updateStatus(id, dto);
   }
+}
 }
