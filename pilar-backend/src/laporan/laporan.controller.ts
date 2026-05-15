@@ -6,6 +6,7 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 export class LaporanController {
   constructor(private laporanService: LaporanService) {}
 
+  // PBI #38 - Naufal Athalino - Halaman Daftar Laporan Kegiatan
   @UseGuards(JwtAuthGuard)
   @Get()
   getAllLaporan() {

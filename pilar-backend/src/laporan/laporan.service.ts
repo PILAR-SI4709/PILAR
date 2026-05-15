@@ -49,6 +49,8 @@ export class LaporanService {
     };
   }
 
+  
+  // PBI #38 - Naufal Athalino - Halaman Daftar Laporan Kegiatan
   async getAllLaporan() {
     const events = await this.prisma.event.findMany({
       include: {
