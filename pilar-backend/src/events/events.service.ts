@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
- 
+
 @Injectable()
 export class EventsService {
   constructor(private prisma: PrismaService) {}
@@ -66,6 +66,7 @@ export class EventsService {
     return { message: 'Event berhasil dihapus' };
   }
 
+  // PBI #22 - Muhammad Faris Alfaqih - Statistik Sampah Terpilah Dashboard Admin
   // Statistik dashboard
   async getStats() {
     const [totalEvent, totalRelawan, sampahData] = await Promise.all([
@@ -77,10 +78,5 @@ export class EventsService {
         _sum: { jumlahKg: true },
       }),
     ]);
-    return {
-      totalEvent,
-      totalRelawan,
-      totalSampahKg: sampahData._sum.jumlahKg || 0,
-    };
   }
-} 
+}
