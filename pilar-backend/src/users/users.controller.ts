@@ -29,13 +29,9 @@ export class UsersController {
     return this.usersService.updateProfile(req.user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('stats')
-  getStats(@Request() req) {
-    return this.usersService.getStats(req.user.id);
-  }
-
-  // Endpoint Ganti Password
+  // PBI #25 - M. Haiqal Akbar - Fungsionalitas Hapus Akun Relawan
+  
+  // --- Endpoint Ganti Password ---
   @UseGuards(JwtAuthGuard)
   @Patch('password')
   changePassword(@Request() req, @Body() body: any) {
