@@ -22,7 +22,7 @@ export default function SertifikatPage() {
     fetchData();
   }, []);
 
-  // PBI #34 - Marshall Rasendria - Auto Generate Sertifikat
+  // PBI #34 - Marshall Rasendria - Auto Generate Sertifikatt
   const fetchData = async () => {
     try {
       const [pRes, sRes] = await Promise.all([
