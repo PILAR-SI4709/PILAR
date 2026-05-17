@@ -45,9 +45,13 @@ export class PendaftaranController {
   findOne(@Param('id') id: string) {
     return this.pendaftaranService.findOne(id);
   }
-}
 
   // #PBI17 - Update Status Partisipasi: Admin mengubah status pendaftaran (APPROVED/REJECTED)
+  // #PBI18 - Validasi Peserta: Perubahan status inilah yang menjadi dasar validasi peserta
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Patch(':id/status')
   updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
     return this.pendaftaranService.updateStatus(id, dto);
   }
+}

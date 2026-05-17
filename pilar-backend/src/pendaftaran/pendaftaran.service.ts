@@ -84,8 +84,7 @@ export class PendaftaranService {
       },
       orderBy: { createdAt: 'asc' },
     });
-  } 
-}
+  }
 
   async findOne(id: string) {
     const data = await this.prisma.pendaftaran.findUnique({
@@ -99,7 +98,8 @@ export class PendaftaranService {
     return data;
   }
 
-    // #PBI17 - Update Status Partisipasi: Memperbarui status pendaftaran menjadi APPROVED atau REJECTED
+  // #PBI17 - Update Status Partisipasi: Memperbarui status pendaftaran menjadi APPROVED atau REJECTED
+  // #PBI18 - Validasi Peserta: Status APPROVED berarti peserta telah divalidasi oleh admin
   async updateStatus(id: string, dto: UpdateStatusDto) {
     await this.findOne(id);
     return this.prisma.pendaftaran.update({
@@ -111,3 +111,11 @@ export class PendaftaranService {
       },
     });
   }
+
+  async cekStatus(userId: string, eventId: string) {
+    const data = await this.prisma.pendaftaran.findUnique({
+      where: { userId_eventId: { userId, eventId } },
+    });
+    return { terdaftar: !!data, status: data?.status || null };
+  }
+}

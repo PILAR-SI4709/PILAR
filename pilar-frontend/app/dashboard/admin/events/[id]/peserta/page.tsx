@@ -32,6 +32,7 @@ export default function PesertaPage() {
   };
 
   // #PBI17 - Update Status Partisipasi: Mengirim perubahan status (Terima/Tolak) ke API
+  // #PBI18 - Validasi Peserta: Tombol Terima/Tolak di bawah adalah UI untuk memvalidasi peserta
   const updateStatus = async (pendaftaranId: string, status: 'APPROVED' | 'REJECTED') => {
     try {
       await api.patch(`/pendaftaran/${pendaftaranId}/status`, { status });
@@ -40,8 +41,7 @@ export default function PesertaPage() {
     } catch { toast.error('Gagal mengubah status'); }
   };
 
-  // #PBI18 - Validasi Peserta: Tombol Terima/Tolak di bawah adalah UI untuk memvalidasi peserta
- const filtered = filter === 'ALL' ? peserta : peserta.filter(p => p.status === filter);
+  const filtered = filter === 'ALL' ? peserta : peserta.filter(p => p.status === filter);
 
   const statusStyle = (s: string) => ({
     PENDING:  { bg: '#fffbeb', color: '#d97706', label: 'Menunggu' },
