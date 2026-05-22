@@ -13,6 +13,7 @@ export class LaporanController {
     return this.laporanService.getAllLaporan();
   }
 
+  // PBI #39 - Naufal Athalino - Detail Laporan Event (peserta, sampah, dokumentasi)
   @UseGuards(JwtAuthGuard)
   @Get(":eventId")
   getLaporanEvent(@Param("eventId") eventId: string) {
