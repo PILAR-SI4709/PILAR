@@ -89,6 +89,30 @@ export default function SettingsPage() {
           </form>
         </div>
 
+        {/* PBI #26 - M. Haiqal Akbar - Integrasi Toggle Notifikasi Email ke Backend */}
+        <div className="set-section" style={{ background: '#fff', borderRadius: '20px', border: '1px solid rgba(14,165,233,0.06)', padding: '28px', marginBottom: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', animation: '_setFade 0.5s ease 0.2s both' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '22px' }}>
+            <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: 'linear-gradient(135deg, #e0f2fe, #bae6fd)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0369a1" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <h2 style={{ fontSize: '13px', fontWeight: '700', color: '#0c4a6e', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Notifikasi</h2>
+          </div>
+          {[
+            { label: 'Email konfirmasi pendaftaran event', desc: 'Kirim email saat pendaftaran diterima atau ditolak' },
+            { label: 'Pengingat event', desc: 'Notifikasi H-1 sebelum event berlangsung' },
+          ].map((n, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: i === 0 ? '1px solid rgba(14,165,233,0.04)' : 'none' }}>
+              <div>
+                <div style={{ fontSize: '14px', color: '#0c4a6e', marginBottom: '3px', fontWeight: '500' }}>{n.label}</div>
+                <div style={{ fontSize: '12px', color: '#7baac7' }}>{n.desc}</div>
+              </div>
+              <button onClick={() => setToggles(t => t.map((v, j) => j === i ? !v : v))} style={{ width: '44px', height: '24px', borderRadius: '12px', background: toggles[i] ? 'linear-gradient(135deg,#0ea5e9,#0369a1)' : '#e2e8f0', cursor: 'pointer', position: 'relative', border: 'none', transition: 'background 0.3s ease', boxShadow: toggles[i] ? '0 2px 8px rgba(14,165,233,0.3)' : 'none' }}>
+                <div style={{ position: 'absolute', top: '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.1)', transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)', left: toggles[i] ? '23px' : '3px' }}/>
+              </button>
+            </div>
+          ))}
+        </div>
+
         {/* PBI #25 - M. Haiqal Akbar - Fungsionalitas Hapus Akun Relawan */}
         <div className="set-section" style={{ background: '#fff', borderRadius: '20px', border: '1px solid rgba(220,38,38,0.08)', padding: '28px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', animation: '_setFade 0.5s ease 0.3s both' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
