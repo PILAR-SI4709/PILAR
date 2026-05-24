@@ -15,7 +15,7 @@ export class SertifikatService {
     return `PILAR-${tahun}-${prefix}-${random}`;
   }
 
-  // PBI #34 - Marshall Rasendria - Generate Sertifikat Otomatis Saat Pendaftaran Disetujui
+  // PBI #29 - Syifa Rizani - Generate dan Unduh Sertifikat PDF
   // Generate sertifikat untuk satu pendaftaran
   async generate(pendaftaranId: string, userId: string) {
     // 1. Cek pendaftaran ada dan milik user ini
@@ -32,7 +32,7 @@ export class SertifikatService {
 
     if (pendaftaran.userId !== userId)
       throw new BadRequestException('Tidak punya akses ke pendaftaran ini');
-
+  // PBI #34 - Marshall Rasendria - Generate Sertifikat Otomatis Saat Pendaftaran Disetujui
     // 2. Cek status pendaftaran harus APPROVED
     if (pendaftaran.status !== 'APPROVED')
       throw new BadRequestException(
@@ -66,6 +66,7 @@ export class SertifikatService {
     });
   }
 
+  // PBI #28 - Syifa Rizani - Daftar Sertifikat Relawan
   // Ambil semua sertifikat milik user
   async getMySertifikat(userId: string) {
     return this.prisma.sertifikat.findMany({
@@ -82,6 +83,7 @@ export class SertifikatService {
     });
   }
 
+  // PBI #36 - Marshall Rasendria - Verifikasi Sertifikat Publik Berdasarkan Nomor Sertifikat
   // Detail satu sertifikat berdasarkan nomor (untuk verifikasi publik)
   async getByNomor(nomorSertifikat: string) {
     const sertifikat = await this.prisma.sertifikat.findUnique({
