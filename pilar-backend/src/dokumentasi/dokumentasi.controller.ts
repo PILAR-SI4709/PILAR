@@ -53,3 +53,11 @@ export class DokumentasiController {
     return this.dokumentasiService.getByEvent(eventId);
   }
 }
+
+// PBI #33 - Feyza Adyani - Hapus Foto Dokumentasi dari Galeri Admin
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  delete(@Param('id') id: string, @Request() req) {
+    return this.dokumentasiService.delete(id, req.user.id);
+  }
+}

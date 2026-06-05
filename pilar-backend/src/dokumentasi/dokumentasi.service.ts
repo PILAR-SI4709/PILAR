@@ -23,3 +23,13 @@ export class DokumentasiService {
     });
   }
 }
+
+// PBI #33 - Feyza Adyani - Hapus Foto Dokumentasi dari Galeri Admin
+  async delete(id: string, userId: string) {
+    const dok = await this.prisma.dokumentasi.findUnique({ where: { id } });
+    if (!dok) throw new NotFoundException('Tidak ditemukan');
+    if (dok.userId !== userId) throw new BadRequestException('Tidak punya akses');
+    await this.prisma.dokumentasi.delete({ where: { id } });
+    return { message: 'Dokumentasi dihapus' };
+  }
+}
