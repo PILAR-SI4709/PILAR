@@ -40,14 +40,14 @@ export class PendaftaranController {
     return this.pendaftaranService.getPesertaEvent(eventId);
   }
 
+  // PBI #37 - Marshall Rasendria - Detail Lengkap Data Pendaftaran Peserta
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.pendaftaranService.findOne(id);
   }
 
-  // #PBI17 - Update Status Partisipasi: Admin mengubah status pendaftaran (APPROVED/REJECTED)
-  // #PBI18 - Validasi Peserta: Perubahan status inilah yang menjadi dasar validasi peserta
+  // PBI #34 - Marshall Rasendria - Generate Sertifikat Otomatis Saat Pendaftaran Disetujui
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Patch(':id/status')

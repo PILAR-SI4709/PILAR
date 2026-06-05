@@ -117,6 +117,7 @@ return (
                 </div>
               </div>
 
+              {/* PBI #37 - Marshall Rasendria - Detail Lengkap Data Pendaftaran Peserta */}
               {/* Detail pendaftaran */}
               <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #f5f0e8', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px' }}>
                 {[

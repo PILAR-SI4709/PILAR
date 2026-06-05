@@ -86,6 +86,7 @@ export class PendaftaranService {
     });
   }
 
+  // PBI #37 - Marshall Rasendria - Detail Lengkap Data Pendaftaran Peserta
   async findOne(id: string) {
     const data = await this.prisma.pendaftaran.findUnique({
       where: { id },
@@ -100,6 +101,8 @@ export class PendaftaranService {
 
   // #PBI17 - Update Status Partisipasi: Memperbarui status pendaftaran menjadi APPROVED atau REJECTED
   // #PBI18 - Validasi Peserta: Status APPROVED berarti peserta telah divalidasi oleh admin
+  // PBI #34 - Marshall Rasendria - Generate Sertifikat Otomatis Saat Pendaftaran Disetujui
+  // Catatan: setelah update status APPROVED, panggil sertifikatService.generate() secara otomatis
   async updateStatus(id: string, dto: UpdateStatusDto) {
     await this.findOne(id);
     return this.prisma.pendaftaran.update({
