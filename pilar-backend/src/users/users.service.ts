@@ -29,9 +29,24 @@ export class UsersService {
     return result;
   }
 
+  // PBI #27 - M. Haiqal Akbar - Statistik Kontribusi Relawan di Halaman Profil
+  async getStats(userId: string) {
+    const approved = await this.prisma.pendaftaran.findMany({
+      where: { userId, status: 'APPROVED' },
+      include: { event: { include: { sampah: true } } },
+    });
+    const totalSampah = approved.reduce((sum, p) =>
+      sum + p.event.sampah.reduce((s, sp) => s + sp.jumlahKg, 0), 0
+    );
+    return {
+      totalEvent: approved.length,
+      totalSampahKg: totalSampah,
+    };
+  }
+
   // PBI #25 - M. Haiqal Akbar - Fungsionalitas Hapus Akun Relawan
-  
-  // --- Logika Ganti Password ---
+
+  // Logika Ganti Password ---
   async changePassword(userId: string, passwordLama: string, passwordBaru: string) {
     // 1. Cari user di database
     const user = await this.prisma.user.findUnique({
@@ -56,5 +71,4 @@ export class UsersService {
 
     return { message: 'Password berhasil diubah' };
   }
-  // --------------------------------------------
 }
