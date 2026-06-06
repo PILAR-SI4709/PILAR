@@ -26,6 +26,27 @@ export default function DashboardAdmin() {
   }, [user]);
 
   // PBI #22 - Muhammad Faris Alfaqih - Statistik Sampah Terpilah Dashboard Admin
+  const fetchData = async () => {
+    try {
+      const [stRes, evRes] = await Promise.all([
+        api.get('/events/stats'),
+        api.get('/events'),
+      ]);
+      setStats(stRes.data);
+      setEvents(evRes.data);
+    } catch {} finally { setLoading(false); }
+  };
+
+  const handleDelete = async (eventId: string) => {
+    if (!confirm('Hapus event ini?')) return;
+    try {
+      await api.delete(`/events/${eventId}`);
+      toast.success('Event dihapus');
+      fetchData();
+    } catch { toast.error('Gagal menghapus event'); }
+  };
+
+  // PBI #22 - Muhammad Faris Alfaqih - Statistik Sampah Terpilah Dashboard Admin
   const statusStyle = (s: string) => ({
     UPCOMING: { color: '#0369a1', bg: 'linear-gradient(135deg, #e0f2fe, #f0f9ff)', label: 'Mendatang' },
     ONGOING:  { color: '#059669', bg: 'linear-gradient(135deg, #dcfce7, #f0fdf4)', label: 'Berlangsung' },
@@ -82,6 +103,17 @@ export default function DashboardAdmin() {
             animation: `_adminFade 0.5s ease ${0.1 * i}s both`,
             position: 'relative', overflow: 'hidden',
           }}>
+            <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '60px', height: '60px', borderRadius: '50%', background: s.gradient, opacity: 0.5, pointerEvents: 'none' }}/>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: s.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {s.icon}
+              </div>
+              <div style={{ fontSize: '11px', color: '#7baac7', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: '500' }}>{s.label}</div>
+            </div>
+            <div style={{ fontSize: '40px', fontWeight: '700', color: s.color, lineHeight: 1, letterSpacing: '-0.03em' }}>{s.value}</div>
+          </div>
+        ))}
+      </div>
 
       {/* PBI #23 - Muhammad Faris Alfaqih - Ringkasan Laporan Kegiatan di Dashboard Admin */}      {/* Tabel Event */}
       <div style={{ background: '#fff', borderRadius: '18px', border: '1px solid rgba(14,165,233,0.06)', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', animation: '_adminFade 0.5s ease 0.3s both' }}>
@@ -107,6 +139,46 @@ export default function DashboardAdmin() {
                 ))}
               </tr>
             </thead>
+            <tbody>
+      {/* PBI #24 - Muhammad Faris Alfaqih - Progress Kuota dan Status Event di Dashboard Admin */}
+              {events.map((e: any) => {
+                const st = statusStyle(e.status);
+                return (
+                  <tr key={e.id} className="admin-row" style={{ borderTop: '1px solid rgba(14,165,233,0.04)' }}>
+                    <td style={{ padding: '14px 18px' }}>
+                      <div style={{ fontSize: '13.5px', fontWeight: '600', color: '#0c4a6e' }}>{e.judul}</div>
+                      <div style={{ fontSize: '11.5px', color: '#7baac7', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        {e.lokasi}
+                      </div>
+                    </td>
+                    <td style={{ padding: '14px 18px', fontSize: '12.5px', color: '#4a6580' }}>
+                      {e.tanggal ? format(new Date(e.tanggal), 'd MMM yyyy', { locale: id }) : '-'}
+                    </td>
+                    <td style={{ padding: '14px 18px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ width: '60px', height: '4px', borderRadius: '2px', background: '#f0f9ff', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${Math.min(100, ((e._count?.pendaftaran || 0) / e.kuota) * 100)}%`, background: 'linear-gradient(to right,#38bdf8,#0369a1)', borderRadius: '2px', transition: 'width 0.5s' }}/>
+                        </div>
+                        <span style={{ fontSize: '12px', color: '#4a6580', fontWeight: '500' }}>{e._count?.pendaftaran || 0}/{e.kuota}</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '14px 18px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', borderRadius: '20px', background: st.bg, color: st.color }}>
+                        {st.label}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 18px' }}>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <Link href={`/dashboard/admin/events/${e.id}/peserta`} className="admin-action" style={{ fontSize: '12px', color: '#0369a1', textDecoration: 'none', padding: '5px 10px', background: 'rgba(14,165,233,0.06)', borderRadius: '7px', fontWeight: '500' }}>Relawan</Link>
+                        <Link href={`/dashboard/admin/events/${e.id}/edit`} className="admin-action" style={{ fontSize: '12px', color: '#4a6580', textDecoration: 'none', padding: '5px 10px', background: '#f8fafc', borderRadius: '7px', fontWeight: '500' }}>Edit</Link>
+                        <button onClick={() => handleDelete(e.id)} className="admin-action" style={{ fontSize: '12px', color: '#dc2626', background: '#fef2f2', border: 'none', cursor: 'pointer', padding: '5px 10px', borderRadius: '7px', fontWeight: '500' }}>Hapus</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
           </table>
         )}
       </div>
