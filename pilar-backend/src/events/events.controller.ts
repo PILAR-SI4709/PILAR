@@ -1,43 +1,34 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-  Request,
-  UseInterceptors,
-  UploadedFile,
-} from "@nestjs/common";
-import { FileInterceptor } from "@nestjs/platform-express";
-import { diskStorage } from "multer";
-import { extname, join } from "path";
-import { existsSync, mkdirSync } from "fs";
-import { EventsService } from "./events.service";
-import { CreateEventDto } from "./dto/create-event.dto";
-import { UpdateEventDto } from "./dto/update-event.dto";
-import { JwtAuthGuard } from "../auth/jwt-auth.guard";
-import { RolesGuard } from "../auth/roles.guard";
-import { Roles } from "../auth/roles.decorator";
-import { Role } from "@prisma/client";
+  Controller, Get, Post, Patch, Delete,
+  Body, Param, Query, UseGuards, Request,
+  UseInterceptors, UploadedFile,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname, join } from 'path';
+import { existsSync, mkdirSync } from 'fs';
+import { EventsService } from './events.service';
+import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@prisma/client';
 
 // Pastikan folder uploads/events ada
-const uploadDir = join(process.cwd(), "uploads", "events");
+const uploadDir = join(process.cwd(), 'uploads', 'events');
 if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
 
-@Controller("events")
+@Controller('events')
 export class EventsController {
   constructor(private eventsService: EventsService) {}
 
   @Get()
-  findAll(@Query("status") status?: string) {
+  findAll(@Query('status') status?: string) {
     return this.eventsService.findAll(status);
   }
 
-  @Get("stats")
+  @Get('stats')
   getStats() {
     return this.eventsService.getStats();
   }
@@ -45,13 +36,13 @@ export class EventsController {
   // PBI #40 - Naufal Athalino - Halaman Rekap Statistik Keseluruhan Program
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  @Get("rekap")
+  @Get('rekap')
   getRekap() {
     return this.eventsService.getRekap();
   }
 
-  @Get(":id")
-  findOne(@Param("id") id: string) {
+  @Get(':id')
+  findOne(@Param('id') id: string) {
     return this.eventsService.findOne(id);
   }
 
@@ -64,24 +55,24 @@ export class EventsController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  @Patch(":id")
-  update(@Param("id") id: string, @Body() dto: UpdateEventDto, @Request() req) {
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateEventDto, @Request() req) {
     return this.eventsService.update(id, dto, req.user.id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  @Delete(":id")
-  remove(@Param("id") id: string, @Request() req) {
+  @Delete(':id')
+  remove(@Param('id') id: string, @Request() req) {
     return this.eventsService.remove(id, req.user.id);
   }
 
   // Upload gambar ke lokal server
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  @Post("upload-gambar")
+  @Post('upload-gambar')
   @UseInterceptors(
-    FileInterceptor("gambar", {
+    FileInterceptor('gambar', {
       storage: diskStorage({
         destination: uploadDir,
         filename: (req, file, cb) => {
@@ -91,8 +82,8 @@ export class EventsController {
       }),
       limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
       fileFilter: (req, file, cb) => {
-        if (!file.mimetype.startsWith("image/")) {
-          cb(new Error("File harus berupa gambar"), false);
+        if (!file.mimetype.startsWith('image/')) {
+          cb(new Error('File harus berupa gambar'), false);
         } else {
           cb(null, true);
         }

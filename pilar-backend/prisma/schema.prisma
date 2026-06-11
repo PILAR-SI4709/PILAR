@@ -12,7 +12,7 @@ enum Role {
   USER
   ADMIN
 }
-
+ 
 enum StatusPendaftaran {
   PENDING
   APPROVED

@@ -1,12 +1,6 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Body,
-  Param,
-  UseGuards,
-  Request,
+  Controller, Get, Post, Patch,
+  Body, Param, UseGuards, Request,
 } from '@nestjs/common';
 import { PendaftaranService } from './pendaftaran.service';
 import { CreatePendaftaranDto } from './dto/create-pendaftaran.dto';
@@ -38,6 +32,7 @@ export class PendaftaranController {
     return this.pendaftaranService.cekStatus(req.user.id, eventId);
   }
 
+  // #PBI16 - Lihat Peserta: Admin melihat daftar peserta yang mendaftar pada suatu event
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Get('event/:eventId')
@@ -45,12 +40,14 @@ export class PendaftaranController {
     return this.pendaftaranService.getPesertaEvent(eventId);
   }
 
+  // PBI #37 - Marshall Rasendria - Detail Lengkap Data Pendaftaran Peserta
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.pendaftaranService.findOne(id);
   }
 
+  // PBI #34 - Marshall Rasendria - Generate Sertifikat Otomatis Saat Pendaftaran Disetujui
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Patch(':id/status')

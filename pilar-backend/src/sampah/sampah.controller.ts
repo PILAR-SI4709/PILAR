@@ -10,17 +10,26 @@ import { Role } from '@prisma/client';
 export class SampahController {
   constructor(private sampahService: SampahService) {}
 
+  // PBI #31 - Feyza Adyani - Form Input Data Sampah Per Event
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Post()
+  create(@Body() dto: CreateSampahDto) {
+    return this.sampahService.create(dto);
+  }
 
-
-
-
-
-
-
-
-
-   // PBI #39 - Naufal Athalino - Detail Laporan Event (data sampah per event)
+  // PBI #31 - Feyza Adyani - Form Input Data Sampah Per Event (ambil daftar)
+  // PBI #39 - Naufal Athalino - Detail Laporan Event (data sampah per event)
   @Get('event/:eventId')
   getByEvent(@Param('eventId') eventId: string) {
     return this.sampahService.getByEvent(eventId);
   }
+
+  // PBI #31 - Feyza Adyani - Form Input Data Sampah Per Event (hapus entri)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.sampahService.delete(id);
+  }
+}
