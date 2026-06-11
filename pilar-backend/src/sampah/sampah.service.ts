@@ -6,6 +6,7 @@ import { CreateSampahDto } from './dto/create-sampah.dto';
 export class SampahService {
   constructor(private prisma: PrismaService) {}
 
+  // PBI #31 - Feyza Adyani - Form Input Data Sampah Per Event
   async create(dto: CreateSampahDto) {
     const event = await this.prisma.event.findUnique({
       where: { id: dto.eventId },
@@ -15,6 +16,7 @@ export class SampahService {
     return this.prisma.sampah.create({ data: dto });
   }
 
+  // PBI #39 - Naufal Athalino - Detail Laporan Event (rincian sampah per event)
   async getByEvent(eventId: string) {
     const data = await this.prisma.sampah.findMany({
       where: { eventId },

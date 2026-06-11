@@ -67,7 +67,7 @@ export class EventsService {
   }
 
   // PBI #22 - Muhammad Faris Alfaqih - Statistik Sampah Terpilah Dashboard Admin
-  // Statistik dashboard
+  // Statistik dashboard (per-event + ringkasan untuk dashboard admin Faris)
   async getStats() {
     const [totalEvent, totalRelawan, sampahData] = await Promise.all([
       this.prisma.event.count(),
@@ -78,5 +78,33 @@ export class EventsService {
         _sum: { jumlahKg: true },
       }),
     ]);
+
+    return {
+      totalEvent,
+      totalRelawan,
+      totalSampahKg: sampahData._sum.jumlahKg || 0,
+    };
+  }
+
+  // PBI #40 - Naufal Athalino - Halaman Rekap Statistik Keseluruhan Program
+  // Rekap agregat seluruh event untuk evaluasi capaian program (halaman terpisah)
+  async getRekap() {
+    const [sampahData, totalRelawanAktif, totalEventSelesai] = await Promise.all([
+      this.prisma.sampah.aggregate({
+        _sum: { jumlahKg: true },
+      }),
+      this.prisma.pendaftaran.count({
+        where: { status: 'APPROVED' },
+      }),
+      this.prisma.event.count({
+        where: { status: 'DONE' },
+      }),
+    ]);
+
+    return {
+      totalSampahKg: sampahData._sum.jumlahKg || 0,
+      totalRelawanAktif,
+      totalEventSelesai,
+    };
   }
 }

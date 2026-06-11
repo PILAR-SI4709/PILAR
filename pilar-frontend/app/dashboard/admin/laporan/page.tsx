@@ -1,4 +1,5 @@
 "use client";
+// PBI #38 - Naufal Athalino - Halaman Daftar Laporan Kegiatan (semua event + ringkasan statistik)
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { DashboardLayout } from "@/components/layout/Sidebar";

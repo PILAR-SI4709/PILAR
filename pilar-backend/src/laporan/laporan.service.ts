@@ -5,6 +5,7 @@ import { PrismaService } from "../prisma/prisma.service";
 export class LaporanService {
   constructor(private prisma: PrismaService) {}
 
+  // PBI #39 - Naufal Athalino - Detail Laporan Event (peserta, sampah, dokumentasi)
   async getLaporanEvent(eventId: string) {
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
@@ -49,6 +50,7 @@ export class LaporanService {
     };
   }
 
+  // PBI #38 - Naufal Athalino - Halaman Daftar Laporan Kegiatan
   async getAllLaporan() {
     const events = await this.prisma.event.findMany({
       include: {

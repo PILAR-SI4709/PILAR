@@ -14,11 +14,11 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '@prisma/client';
-  
+
 // Pastikan folder uploads/events ada
 const uploadDir = join(process.cwd(), 'uploads', 'events');
 if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
- 
+
 @Controller('events')
 export class EventsController {
   constructor(private eventsService: EventsService) {}
@@ -31,6 +31,14 @@ export class EventsController {
   @Get('stats')
   getStats() {
     return this.eventsService.getStats();
+  }
+
+  // PBI #40 - Naufal Athalino - Halaman Rekap Statistik Keseluruhan Program
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('rekap')
+  getRekap() {
+    return this.eventsService.getRekap();
   }
 
   @Get(':id')
