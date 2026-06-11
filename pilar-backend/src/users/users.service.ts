@@ -1,3 +1,4 @@
+// Tambahkan BadRequestException pada import
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -28,6 +29,7 @@ export class UsersService {
     return result;
   }
 
+  // PBI #27 - M. Haiqal Akbar - Statistik Kontribusi Relawan di Halaman Profil
   async getStats(userId: string) {
     const approved = await this.prisma.pendaftaran.findMany({
       where: { userId, status: 'APPROVED' },
@@ -42,7 +44,9 @@ export class UsersService {
     };
   }
 
-  // Logika Ganti Password
+  // PBI #25 - M. Haiqal Akbar - Fungsionalitas Hapus Akun Relawan
+
+  // Logika Ganti Password ---
   async changePassword(userId: string, passwordLama: string, passwordBaru: string) {
     // 1. Cari user di database
     const user = await this.prisma.user.findUnique({
@@ -50,7 +54,7 @@ export class UsersService {
     });
     if (!user) throw new NotFoundException('User tidak ditemukan');
 
-    // 2. Cek apakah password lama cocok
+    // 2. Cek apakah password lama cocok dengan yang ada di database
     const isPasswordValid = await bcrypt.compare(passwordLama, user.password);
     if (!isPasswordValid) {
       throw new BadRequestException('Password lama salah');
@@ -67,5 +71,4 @@ export class UsersService {
 
     return { message: 'Password berhasil diubah' };
   }
-  // --------------------------------------------
 }

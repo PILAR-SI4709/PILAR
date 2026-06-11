@@ -32,6 +32,7 @@ export default function ProfilePage() {
     } catch {}
   };
 
+  // PBI #27 - M. Haiqal Akbar - Statistik Kontribusi Relawan di Halaman Profil
   const fetchStats = async () => {
     try { const res = await api.get('/users/stats'); setStats(res.data); } catch {}
   };
@@ -135,6 +136,7 @@ export default function ProfilePage() {
             </button>
           </div>
 
+          {/* PBI #27 - M. Haiqal Akbar - Statistik Kontribusi Relawan di Halaman Profil */}
           <div style={{ display: 'flex', gap: '24px' }}>
             {[
               { label: 'Event Diikuti', value: stats.totalEvent, color: '#0369a1' },
