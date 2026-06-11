@@ -12,7 +12,7 @@ enum Role {
   USER
   ADMIN
 }
-
+ 
 enum StatusPendaftaran {
   PENDING
   APPROVED
@@ -131,4 +131,3 @@ model Sertifikat {
 
   @@map("sertifikat")
 }
-
