@@ -14,11 +14,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 — redirect ke login
+// Handle 401 — redirect ke login, kecuali untuk endpoint auth itu sendiri
+// (login/register yang mengembalikan 401 karena credentials salah, bukan sesi expired)
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && typeof window !== 'undefined') {
+    const requestUrl = err.config?.url ?? '';
+    const isAuthEndpoint = requestUrl.includes('/auth/login') || requestUrl.includes('/auth/register');
+    if (err.response?.status === 401 && !isAuthEndpoint && typeof window !== 'undefined') {
       localStorage.removeItem('pilar_token');
       localStorage.removeItem('pilar_user');
       window.location.href = '/login';

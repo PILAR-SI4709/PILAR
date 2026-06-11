@@ -18,6 +18,7 @@ export default function PesertaPage() {
 
   useEffect(() => { fetchData(); }, []);
 
+  // #PBI16 - Lihat Peserta: Mengambil data event dan daftar peserta dari API
   const fetchData = async () => {
     try {
       const [evRes, pRes] = await Promise.all([
@@ -30,6 +31,8 @@ export default function PesertaPage() {
     finally { setLoading(false); }
   };
 
+  // #PBI17 - Update Status Partisipasi: Mengirim perubahan status (Terima/Tolak) ke API
+  // #PBI18 - Validasi Peserta: Tombol Terima/Tolak di bawah adalah UI untuk memvalidasi peserta
   const updateStatus = async (pendaftaranId: string, status: 'APPROVED' | 'REJECTED') => {
     try {
       await api.patch(`/pendaftaran/${pendaftaranId}/status`, { status });
@@ -114,6 +117,7 @@ return (
                 </div>
               </div>
 
+              {/* PBI #37 - Marshall Rasendria - Detail Lengkap Data Pendaftaran Peserta */}
               {/* Detail pendaftaran */}
               <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #f5f0e8', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px' }}>
                 {[
