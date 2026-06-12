@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Patch, Post, Body,
+  Controller, Get, Patch, Post, Delete, Body,
   UseGuards, Request, UseInterceptors, UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -37,7 +37,11 @@ export class UsersController {
   }
 
   // PBI #25 - M. Haiqal Akbar - Fungsionalitas Hapus Akun Relawan
-  // Tambahkan endpoint DELETE /users/profile di sini — panggil usersService.deleteAccount(req.user.id)
+  @UseGuards(JwtAuthGuard)
+  @Delete('profile')
+  deleteAccount(@Request() req) {
+    return this.usersService.deleteAccount(req.user.id);
+  }
 
   // --- TAMBAHAN BARU: Endpoint Ganti Password ---
   @UseGuards(JwtAuthGuard)

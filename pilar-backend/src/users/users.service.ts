@@ -45,7 +45,22 @@ export class UsersService {
   }
 
   // PBI #25 - M. Haiqal Akbar - Fungsionalitas Hapus Akun Relawan
-  // Tambahkan method deleteAccount(userId: string) di sini — hapus user beserta seluruh relasinya
+  // Hapus akun user beserta seluruh relasinya. Relasi User tidak memakai
+  // cascade di level FK, jadi child rows dihapus manual dalam satu transaksi
+  // agar tidak melanggar foreign key constraint.
+  async deleteAccount(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User tidak ditemukan');
+
+    await this.prisma.$transaction([
+      this.prisma.sertifikat.deleteMany({ where: { userId } }),
+      this.prisma.dokumentasi.deleteMany({ where: { userId } }),
+      this.prisma.pendaftaran.deleteMany({ where: { userId } }),
+      this.prisma.user.delete({ where: { id: userId } }),
+    ]);
+
+    return { message: 'Akun berhasil dihapus' };
+  }
 
   // --- TAMBAHAN BARU: Logika Ganti Password ---
   async changePassword(userId: string, passwordLama: string, passwordBaru: string) {
