@@ -131,4 +131,3 @@ model Sertifikat {
 
   @@map("sertifikat")
 }
-
