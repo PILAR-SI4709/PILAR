@@ -58,9 +58,19 @@ export default function SettingsPage() {
   };
 
   // PBI #25 - M. Haiqal Akbar - Fungsionalitas Hapus Akun Relawan
-  const handleHapusAkun = () => {
+  const [deleting, setDeleting] = useState(false);
+  const handleHapusAkun = async () => {
     if (!confirm('Yakin ingin menghapus akun? Tindakan ini tidak bisa dibatalkan.')) return;
-    toast.error('Fitur hapus akun belum tersedia. Hubungi admin.');
+    setDeleting(true);
+    try {
+      await api.delete('/users/profile');
+      toast.success('Akun berhasil dihapus');
+      logout();
+      router.push('/');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Gagal menghapus akun');
+      setDeleting(false);
+    }
   };
 
   return (
@@ -156,9 +166,9 @@ export default function SettingsPage() {
           <p style={{ fontSize: '13.5px', color: '#64748b', marginBottom: '18px', lineHeight: 1.7 }}>
             Menghapus akun akan menghilangkan seluruh data riwayat pendaftaran dan sertifikat secara permanen.
           </p>
-          <button onClick={handleHapusAkun} className="set-btn-danger" style={{ padding: '10px 20px', borderRadius: '10px', background: '#fff', color: '#dc2626', border: '1.5px solid #fecaca', cursor: 'pointer', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button onClick={handleHapusAkun} disabled={deleting} className="set-btn-danger" style={{ padding: '10px 20px', borderRadius: '10px', background: '#fff', color: '#dc2626', border: '1.5px solid #fecaca', cursor: deleting ? 'wait' : 'pointer', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', opacity: deleting ? 0.6 : 1 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            Hapus Akun Saya
+            {deleting ? 'Menghapus...' : 'Hapus Akun Saya'}
           </button>
         </div>
       </div>

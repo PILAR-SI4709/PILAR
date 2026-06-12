@@ -15,6 +15,14 @@ export default function MainPage() {
   const [events, setEvents] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalEvent: 0, totalRelawan: 0, totalSampahKg: 0 });
   const [loadingEvents, setLoadingEvents] = useState(true);
+  // PBI #30 - Pencarian (nama/lokasi) + filter status event di landing page.
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  // PBI #36 - Verifikasi keaslian sertifikat oleh guest.
+  const [nomorVerif, setNomorVerif] = useState('');
+  const [verifLoading, setVerifLoading] = useState(false);
+  const [verifResult, setVerifResult] = useState<any>(null);
+  const [verifError, setVerifError] = useState('');
 
   useEffect(() => {
     loadFromStorage();
@@ -30,13 +38,41 @@ export default function MainPage() {
   const fetchData = async () => {
     try {
       const [evRes, stRes] = await Promise.all([
-        api.get('/events?status=UPCOMING'),
+        api.get('/events'),
         api.get('/events/stats'),
       ]);
-      setEvents(evRes.data.slice(0, 6));
+      setEvents(evRes.data);
       setStats(stRes.data);
     } catch {} finally { setLoadingEvents(false); }
   };
+
+  // PBI #36 - Panggil endpoint publik verifikasi sertifikat.
+  const handleVerifikasi = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const nomor = nomorVerif.trim();
+    if (!nomor) return;
+    setVerifLoading(true);
+    setVerifResult(null);
+    setVerifError('');
+    try {
+      const res = await api.get(`/sertifikat/verifikasi/${encodeURIComponent(nomor)}`);
+      setVerifResult(res.data);
+    } catch {
+      setVerifError('Sertifikat tidak ditemukan');
+    } finally {
+      setVerifLoading(false);
+    }
+  };
+
+  // PBI #30 - Filter event sisi-client: cocokkan nama/lokasi (case-insensitive) + status.
+  const q = search.trim().toLowerCase();
+  const filteredEvents = events.filter((e: any) => {
+    const cocokTeks = !q
+      || (e.judul || '').toLowerCase().includes(q)
+      || (e.lokasi || '').toLowerCase().includes(q);
+    const cocokStatus = !filterStatus || e.status === filterStatus;
+    return cocokTeks && cocokStatus;
+  });
 
   return (
     <div style={{ minHeight: '100vh', background: '#fff' }}>
@@ -313,13 +349,61 @@ export default function MainPage() {
             </p>
           </div>
 
+          {/* PBI #30 - Kontrol pencarian & filter status */}
+          <div style={{ maxWidth: '720px', margin: '0 auto 36px', display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'relative', flex: '1 1 280px', minWidth: '220px' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7baac7" strokeWidth="2" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Cari event..."
+                style={{
+                  width: '100%', padding: '11px 16px 11px 40px', borderRadius: '12px',
+                  border: '1.5px solid rgba(14,165,233,0.12)', background: '#fff',
+                  fontSize: '14px', fontFamily: 'inherit', color: '#0c4a6e',
+                  outline: 'none', boxSizing: 'border-box', transition: 'all 0.25s ease',
+                }}
+                onFocus={e => { e.currentTarget.style.borderColor = '#0ea5e9'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(14,165,233,0.08)'; }}
+                onBlur={e => { e.currentTarget.style.borderColor = 'rgba(14,165,233,0.12)'; e.currentTarget.style.boxShadow = 'none'; }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {[
+                { key: '', label: 'Semua' },
+                { key: 'UPCOMING', label: 'Mendatang' },
+                { key: 'ONGOING', label: 'Berlangsung' },
+                { key: 'DONE', label: 'Selesai' },
+              ].map(f => {
+                const aktif = filterStatus === f.key;
+                return (
+                  <button
+                    key={f.key}
+                    onClick={() => setFilterStatus(f.key)}
+                    style={{
+                      padding: '9px 16px', borderRadius: '10px', cursor: 'pointer',
+                      fontSize: '13px', fontWeight: '600', fontFamily: 'inherit',
+                      border: aktif ? '1.5px solid transparent' : '1.5px solid rgba(14,165,233,0.12)',
+                      background: aktif ? 'linear-gradient(135deg,#0ea5e9,#0369a1)' : '#fff',
+                      color: aktif ? '#fff' : '#7baac7',
+                      boxShadow: aktif ? '0 4px 14px rgba(14,165,233,0.25)' : 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >{f.label}</button>
+                );
+              })}
+            </div>
+          </div>
+
           {loadingEvents ? (
             <div style={{ textAlign: 'center', padding: '64px', color: '#b0c8d8', fontSize: '14px' }}>Memuat event...</div>
           ) : events.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '64px', color: '#b0c8d8', fontSize: '14px' }}>Belum ada event mendatang</div>
+            <div style={{ textAlign: 'center', padding: '64px', color: '#b0c8d8', fontSize: '14px' }}>Belum ada event</div>
+          ) : filteredEvents.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '64px', color: '#b0c8d8', fontSize: '14px' }}>Tidak ada event yang cocok dengan pencarian</div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(290px,1fr))', gap: '24px' }}>
-              {events.map((e: any, idx: number) => (
+              {filteredEvents.map((e: any, idx: number) => (
                 <Link key={e.id} href={`/events/${e.id}`} style={{ textDecoration: 'none' }}>
                   <div
                     className="event-card-premium"
@@ -370,6 +454,77 @@ export default function MainPage() {
                   </div>
                 </Link>
               ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* PBI #36 - Marshall Rasendria - Verifikasi Keaslian Sertifikat oleh Guest */}
+      <section id="verifikasi" style={{ padding: '100px 48px', background: 'linear-gradient(180deg, #f0f7ff 0%, #fdfaf5 100%)' }}>
+        <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+          <p style={{ fontSize: '11px', letterSpacing: '0.2em', color: '#0ea5e9', textTransform: 'uppercase', marginBottom: '12px', fontWeight: '600' }}>Keaslian Dokumen</p>
+          <h2 style={{ fontFamily: 'DM Serif Display, serif', fontSize: '40px', color: '#0c4a6e', letterSpacing: '-0.02em', marginBottom: '12px' }}>
+            Verifikasi Sertifikat
+          </h2>
+          <p style={{ fontSize: '15px', color: '#64748b', maxWidth: '440px', margin: '0 auto 36px', lineHeight: 1.7 }}>
+            Masukkan nomor sertifikat untuk memeriksa keasliannya dan melihat data relawan serta event terkait.
+          </p>
+
+          <form onSubmit={handleVerifikasi} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: verifResult || verifError ? '28px' : 0 }}>
+            <input
+              type="text"
+              value={nomorVerif}
+              onChange={e => setNomorVerif(e.target.value)}
+              placeholder="Masukkan nomor sertifikat"
+              style={{
+                flex: '1 1 320px', minWidth: '240px', padding: '13px 18px', borderRadius: '12px',
+                border: '1.5px solid rgba(14,165,233,0.15)', background: '#fff',
+                fontSize: '14px', fontFamily: 'inherit', color: '#0c4a6e',
+                outline: 'none', boxSizing: 'border-box', transition: 'all 0.25s ease',
+              }}
+              onFocus={e => { e.currentTarget.style.borderColor = '#0ea5e9'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(14,165,233,0.08)'; }}
+              onBlur={e => { e.currentTarget.style.borderColor = 'rgba(14,165,233,0.15)'; e.currentTarget.style.boxShadow = 'none'; }}
+            />
+            <button type="submit" disabled={verifLoading} className="btn-cta" style={{
+              fontSize: '14px', color: '#fff', fontWeight: '600', fontFamily: 'inherit',
+              padding: '13px 28px', borderRadius: '12px', border: 'none',
+              background: 'linear-gradient(135deg,#0ea5e9,#0369a1)',
+              cursor: verifLoading ? 'wait' : 'pointer', boxShadow: '0 4px 14px rgba(14,165,233,0.25)',
+              opacity: verifLoading ? 0.7 : 1,
+            }}>
+              {verifLoading ? 'Memeriksa...' : 'Verifikasi'}
+            </button>
+          </form>
+
+          {verifError && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '18px 24px', borderRadius: '14px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: '14px', fontWeight: '500' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              {verifError}
+            </div>
+          )}
+
+          {verifResult && (
+            <div style={{ textAlign: 'left', padding: '28px', borderRadius: '18px', background: '#fff', border: '1px solid rgba(14,165,233,0.1)', boxShadow: '0 8px 28px rgba(14,165,233,0.1)', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg,#0ea5e9,#0369a1)' }}/>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '22px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #dcfce7, #bbf7d0)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.2"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: '700', color: '#16a34a' }}>Sertifikat Valid</div>
+                  <div style={{ fontSize: '12.5px', color: '#7baac7', fontFamily: 'monospace', marginTop: '2px' }}>{verifResult.nomorSertifikat}</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
+                  <div style={{ fontSize: '11px', color: '#7baac7', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '600', marginBottom: '4px' }}>Nama Relawan</div>
+                  <div style={{ fontSize: '15px', color: '#0c4a6e', fontWeight: '600' }}>{verifResult.user?.nama}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: '#7baac7', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: '600', marginBottom: '4px' }}>Event</div>
+                  <div style={{ fontSize: '15px', color: '#0c4a6e', fontWeight: '600' }}>{verifResult.event?.judul}</div>
+                </div>
+              </div>
             </div>
           )}
         </div>

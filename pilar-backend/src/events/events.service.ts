@@ -75,7 +75,7 @@ export class EventsService {
   // PBI #22 - Muhammad Faris Alfaqih - Statistik Sampah Terpilah Dashboard Admin
   // Statistik dashboard (per-event + ringkasan untuk dashboard admin Faris)
   async getStats() {
-    const [totalEvent, totalRelawan, sampahData] = await Promise.all([
+    const [totalEvent, totalRelawan, sampahData, sampahGroup] = await Promise.all([
       this.prisma.event.count(),
       this.prisma.pendaftaran.count({
         where: { status: 'APPROVED' },
@@ -83,12 +83,24 @@ export class EventsService {
       this.prisma.sampah.aggregate({
         _sum: { jumlahKg: true },
       }),
+      // PBI #22 - Statistik sampah terpilah per jenis (Plastik, Kaca, Logam, dst).
+      this.prisma.sampah.groupBy({
+        by: ['jenis'],
+        _sum: { jumlahKg: true },
+        orderBy: { _sum: { jumlahKg: 'desc' } },
+      }),
     ]);
+
+    const sampahPerJenis = sampahGroup.map((s) => ({
+      jenis: s.jenis,
+      totalKg: s._sum.jumlahKg || 0,
+    }));
 
     return {
       totalEvent,
       totalRelawan,
       totalSampahKg: sampahData._sum.jumlahKg || 0,
+      sampahPerJenis,
     };
   }
 
