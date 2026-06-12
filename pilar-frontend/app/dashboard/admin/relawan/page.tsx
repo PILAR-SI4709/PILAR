@@ -24,7 +24,11 @@ export default function AdminRelawanPage() {
           events.map((e: any) => (
             <Link key={e.id} href={`/dashboard/admin/events/${e.id}/peserta`} style={{ textDecoration: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', borderRadius: '12px', border: '1px solid #f5f0e8', padding: '14px 18px' }}>
               <div style={{ fontSize: '14px', fontWeight: '500', color: '#0c4a6e' }}>{e.judul}</div>
-              <div style={{ fontSize: '12px', color: '#0369a1' }}>{e._count?.pendaftaran || 0} pendaftar · Kelola</div>
+              <div style={{ fontSize: '12px', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {e._count?.pendaftaran || 0} pendaftar
+                <span style={{ color: '#b0c8d8' }}>·</span>
+                <span style={{ fontWeight: 600 }}>Lihat Relawan →</span>
+              </div>
             </Link>
           ))
         }

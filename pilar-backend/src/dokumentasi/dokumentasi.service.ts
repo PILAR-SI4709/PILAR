@@ -5,6 +5,19 @@ import { PrismaService } from '../prisma/prisma.service';
 export class DokumentasiService {
   constructor(private prisma: PrismaService) {}
 
+  // Upload oleh relawan — cek dulu terdaftar di event
+  async create(eventId: string, userId: string, fotoUrl: string, caption?: string) {
+    const pendaftaran = await this.prisma.pendaftaran.findUnique({
+      where: { userId_eventId: { userId, eventId } },
+    });
+    if (!pendaftaran)
+      throw new BadRequestException('Kamu tidak terdaftar di event ini');
+
+    return this.prisma.dokumentasi.create({
+      data: { eventId, userId, fotoUrl, caption },
+    });
+  }
+
   // PBI #32 - Feyza Adyani - Upload Foto Dokumentasi Kegiatan oleh Admin
   // Upload oleh admin — tidak perlu cek pendaftaran
   async createAdmin(eventId: string, userId: string, fotoUrl: string, caption?: string) {
@@ -22,9 +35,8 @@ export class DokumentasiService {
       orderBy: { createdAt: 'desc' },
     });
   }
-}
 
-// PBI #33 - Feyza Adyani - Hapus Foto Dokumentasi dari Galeri Admin
+  // PBI #33 - Feyza Adyani - Hapus Foto Dokumentasi dari Galeri Admin
   async delete(id: string, userId: string) {
     const dok = await this.prisma.dokumentasi.findUnique({ where: { id } });
     if (!dok) throw new NotFoundException('Tidak ditemukan');

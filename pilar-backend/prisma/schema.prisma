@@ -12,7 +12,7 @@ enum Role {
   USER
   ADMIN
 }
- 
+
 enum StatusPendaftaran {
   PENDING
   APPROVED
@@ -34,6 +34,9 @@ model User {
   foto          String?
   bio           String?
   noHp          String?
+  // TASK 7 - Preferensi notifikasi email relawan (disimpan ke backend, dipakai sebelum kirim email)
+  emailNotificationEnabled    Boolean @default(true)
+  reminderNotificationEnabled Boolean @default(true)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
@@ -53,6 +56,12 @@ model Event {
   tanggal     DateTime
   kuota       Int
   gambar      String?
+  // TASK 6 - Detail kegiatan yang bisa diisi admin (sebelumnya hardcoded di frontend).
+  // "Tentang Event" tetap memakai `deskripsi`, "Jumlah relawan dibutuhkan" memakai `kuota`.
+  tugasRelawan    String?
+  kriteriaRelawan String?
+  perlengkapan    String?
+  domisili        String?
   status      StatusEvent @default(UPCOMING)
   adminId     String
   createdAt   DateTime    @default(now())
@@ -75,6 +84,11 @@ model Pendaftaran {
   motivasi   String
   kesehatan  Json
   izin       Boolean          @default(false)
+  // TASK 4 - Auto-reject berdasarkan form kesehatan.
+  // autoRejected = true bila ditolak otomatis oleh sistem (bukan oleh admin),
+  // alasanReject menyimpan alasan penolakan untuk ditampilkan di UI admin.
+  autoRejected Boolean        @default(false)
+  alasanReject String?
   nik        String
   alamat     String
   tanggalLahir DateTime

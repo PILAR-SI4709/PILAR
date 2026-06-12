@@ -45,8 +45,9 @@ export class UsersService {
   }
 
   // PBI #25 - M. Haiqal Akbar - Fungsionalitas Hapus Akun Relawan
+  // Tambahkan method deleteAccount(userId: string) di sini — hapus user beserta seluruh relasinya
 
-  // Logika Ganti Password ---
+  // --- TAMBAHAN BARU: Logika Ganti Password ---
   async changePassword(userId: string, passwordLama: string, passwordBaru: string) {
     // 1. Cari user di database
     const user = await this.prisma.user.findUnique({
@@ -71,4 +72,5 @@ export class UsersService {
 
     return { message: 'Password berhasil diubah' };
   }
+  // --------------------------------------------
 }

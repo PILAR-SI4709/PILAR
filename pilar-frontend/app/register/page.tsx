@@ -10,14 +10,20 @@ export default function RegisterPage() {
   const router = useRouter();
   const { setAuth } = useAuthStore();
   const [form, setForm] = useState({ nama: '', email: '', password: '' });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.password.length < 6) {
-      toast.error('Password minimal 6 karakter');
-      return;
-    }
+    // TASK 2 - Validasi inline
+    const er: Record<string, string> = {};
+    if (!form.nama.trim()) er.nama = 'Nama wajib diisi';
+    if (!form.email.trim()) er.email = 'Email wajib diisi';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) er.email = 'Format email tidak valid';
+    if (!form.password) er.password = 'Password wajib diisi';
+    else if (form.password.length < 6) er.password = 'Password minimal 6 karakter';
+    setErrors(er);
+    if (Object.keys(er).length > 0) return;
     setLoading(true);
     try {
       await api.post('/auth/register', form);
@@ -138,9 +144,10 @@ export default function RegisterPage() {
                   className="reg-input"
                   placeholder={f.ph}
                   value={(form as any)[f.id]}
-                  onChange={e => setForm(p => ({ ...p, [f.id]: e.target.value }))}
-                  required
+                  onChange={e => { setForm(p => ({ ...p, [f.id]: e.target.value })); setErrors(er => ({ ...er, [f.id]: '' })); }}
+                  style={errors[f.id] ? { borderColor: '#dc2626' } : undefined}
                 />
+                {errors[f.id] && <p style={{ fontSize: '12px', color: '#dc2626', marginTop: '6px' }}>{errors[f.id]}</p>}
               </div>
             ))}
             <button type="submit" disabled={loading} className="reg-btn" style={{ marginTop: '4px' }}>

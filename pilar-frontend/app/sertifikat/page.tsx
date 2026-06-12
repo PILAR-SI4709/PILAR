@@ -22,7 +22,8 @@ export default function SertifikatPage() {
     fetchData();
   }, []);
 
-  // PBI #34 - Marshall Rasendria - Auto Generate Sertifikatt
+  // PBI #28 - Syifa Rizani - Daftar Sertifikat Relawan
+  // PBI #29 - Syifa Rizani - Generate dan Unduh Sertifikat PDF
   const fetchData = async () => {
     try {
       const [pRes, sRes] = await Promise.all([
@@ -37,6 +38,7 @@ export default function SertifikatPage() {
   const getSertForPendaftaran = (pendaftaranId: string) =>
     sertifikat.find(s => s.pendaftaranId === pendaftaranId);
 
+  // PBI #29 - Syifa Rizani - Generate dan Unduh Sertifikat PDF
   const handleGenerate = async (pendaftaranId: string) => {
     setGenerating(pendaftaranId);
     try {
@@ -48,6 +50,7 @@ export default function SertifikatPage() {
     } finally { setGenerating(null); }
   };
 
+  // PBI #29 - Syifa Rizani - Generate dan Unduh Sertifikat PDF (html2canvas + jsPDF)
   const handleDownload = async (sert: any) => {
     setDownloading(sert.id);
     setPreviewSert(sert);
@@ -255,7 +258,7 @@ export default function SertifikatPage() {
   );
 }
 
-// Template Sertifikat untuk Render PDF
+// PBI #29 - Syifa Rizani - Template Sertifikat untuk Render PDF
 function CertificateTemplate({ sert, certRef, user }: { sert: any, certRef: any, user: any }) {
   if (!sert) return null;
 

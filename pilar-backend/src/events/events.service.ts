@@ -29,7 +29,13 @@ export class EventsService {
       },
     });
     if (!event) throw new NotFoundException('Event tidak ditemukan');
-    return event;
+
+    // TASK 6 - Sisa kuota dihitung dari kuota dikurangi relawan DITERIMA (APPROVED).
+    const relawanDiterima = await this.prisma.pendaftaran.count({
+      where: { eventId: id, status: 'APPROVED' },
+    });
+
+    return { ...event, relawanDiterima };
   }
 
   // Buat event baru (admin only)

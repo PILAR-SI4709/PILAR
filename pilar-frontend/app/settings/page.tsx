@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/Sidebar';
 import { useAuthStore } from '@/lib/store';
 import api from '@/lib/api';
@@ -11,7 +11,37 @@ export default function SettingsPage() {
   const router = useRouter();
   const [pwForm, setPwForm] = useState({ passwordLama: '', passwordBaru: '', konfirmasi: '' });
   const [loading, setLoading] = useState(false);
+
+  // PBI #26 / TASK 7 - Preferensi notifikasi dimuat dari & disimpan ke backend.
+  // toggles[0] = emailNotificationEnabled, toggles[1] = reminderNotificationEnabled
   const [toggles, setToggles] = useState([true, true]);
+  const [savingToggle, setSavingToggle] = useState<number | null>(null);
+
+  useEffect(() => {
+    api.get('/users/profile')
+      .then(r => setToggles([
+        r.data.emailNotificationEnabled ?? true,
+        r.data.reminderNotificationEnabled ?? true,
+      ]))
+      .catch(() => {});
+  }, []);
+
+  const handleToggle = async (i: number) => {
+    const nilaiBaru = !toggles[i];
+    const sebelumnya = toggles;
+    setToggles(t => t.map((v, j) => (j === i ? nilaiBaru : v))); // optimistic update
+    setSavingToggle(i);
+    const field = i === 0 ? 'emailNotificationEnabled' : 'reminderNotificationEnabled';
+    try {
+      await api.patch('/users/profile', { [field]: nilaiBaru });
+      toast.success('Preferensi notifikasi disimpan');
+    } catch {
+      setToggles(sebelumnya); // rollback bila gagal
+      toast.error('Gagal menyimpan preferensi');
+    } finally {
+      setSavingToggle(null);
+    }
+  };
 
   const handleGantiPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,6 +120,7 @@ export default function SettingsPage() {
         </div>
 
         {/* PBI #26 - M. Haiqal Akbar - Integrasi Toggle Notifikasi Email ke Backend */}
+        {/* Notifikasi */}
         <div className="set-section" style={{ background: '#fff', borderRadius: '20px', border: '1px solid rgba(14,165,233,0.06)', padding: '28px', marginBottom: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', animation: '_setFade 0.5s ease 0.2s both' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '22px' }}>
             <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: 'linear-gradient(135deg, #e0f2fe, #bae6fd)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -106,7 +137,7 @@ export default function SettingsPage() {
                 <div style={{ fontSize: '14px', color: '#0c4a6e', marginBottom: '3px', fontWeight: '500' }}>{n.label}</div>
                 <div style={{ fontSize: '12px', color: '#7baac7' }}>{n.desc}</div>
               </div>
-              <button onClick={() => setToggles(t => t.map((v, j) => j === i ? !v : v))} style={{ width: '44px', height: '24px', borderRadius: '12px', background: toggles[i] ? 'linear-gradient(135deg,#0ea5e9,#0369a1)' : '#e2e8f0', cursor: 'pointer', position: 'relative', border: 'none', transition: 'background 0.3s ease', boxShadow: toggles[i] ? '0 2px 8px rgba(14,165,233,0.3)' : 'none' }}>
+              <button onClick={() => handleToggle(i)} disabled={savingToggle === i} style={{ width: '44px', height: '24px', borderRadius: '12px', background: toggles[i] ? 'linear-gradient(135deg,#0ea5e9,#0369a1)' : '#e2e8f0', cursor: savingToggle === i ? 'wait' : 'pointer', position: 'relative', border: 'none', transition: 'background 0.3s ease', boxShadow: toggles[i] ? '0 2px 8px rgba(14,165,233,0.3)' : 'none', opacity: savingToggle === i ? 0.7 : 1 }}>
                 <div style={{ position: 'absolute', top: '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.1)', transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)', left: toggles[i] ? '23px' : '3px' }}/>
               </button>
             </div>
@@ -114,6 +145,7 @@ export default function SettingsPage() {
         </div>
 
         {/* PBI #25 - M. Haiqal Akbar - Fungsionalitas Hapus Akun Relawan */}
+        {/* Zona Bahaya */}
         <div className="set-section" style={{ background: '#fff', borderRadius: '20px', border: '1px solid rgba(220,38,38,0.08)', padding: '28px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', animation: '_setFade 0.5s ease 0.3s both' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
             <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: 'linear-gradient(135deg, #fee2e2, #fecaca)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
