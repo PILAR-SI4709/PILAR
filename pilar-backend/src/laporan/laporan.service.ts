@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class LaporanService {
@@ -13,11 +13,11 @@ export class LaporanService {
         admin: { select: { nama: true, foto: true } },
       },
     });
-    if (!event) throw new NotFoundException("Event tidak ditemukan");
+    if (!event) throw new NotFoundException('Event tidak ditemukan');
 
     const [peserta, dokumentasi, sampah] = await Promise.all([
       this.prisma.pendaftaran.findMany({
-        where: { eventId, status: "APPROVED" },
+        where: { eventId, status: 'APPROVED' },
         include: {
           user: { select: { id: true, nama: true, foto: true, email: true } },
         },
@@ -27,11 +27,11 @@ export class LaporanService {
         include: {
           user: { select: { nama: true } },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
       }),
       this.prisma.sampah.findMany({
         where: { eventId },
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: 'asc' },
       }),
     ]);
 
@@ -62,7 +62,7 @@ export class LaporanService {
           },
         },
       },
-      orderBy: { tanggal: "desc" },
+      orderBy: { tanggal: 'desc' },
     });
     return events;
   }

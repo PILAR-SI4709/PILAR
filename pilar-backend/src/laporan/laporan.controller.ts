@@ -1,8 +1,8 @@
-import { Controller, Get, Param, UseGuards } from "@nestjs/common";
-import { LaporanService } from "./laporan.service";
-import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { LaporanService } from './laporan.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@Controller("laporan")
+@Controller('laporan')
 export class LaporanController {
   constructor(private laporanService: LaporanService) {}
 
@@ -15,8 +15,8 @@ export class LaporanController {
 
   // PBI #39 - Naufal Athalino - Detail Laporan Event (peserta, sampah, dokumentasi)
   @UseGuards(JwtAuthGuard)
-  @Get(":eventId")
-  getLaporanEvent(@Param("eventId") eventId: string) {
+  @Get(':eventId')
+  getLaporanEvent(@Param('eventId') eventId: string) {
     return this.laporanService.getLaporanEvent(eventId);
   }
 }

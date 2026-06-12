@@ -37,13 +37,15 @@ export class UsersController {
   }
 
   // PBI #25 - M. Haiqal Akbar - Fungsionalitas Hapus Akun Relawan
- 
-  // Endpoint Ganti Password
+  // Tambahkan endpoint DELETE /users/profile di sini — panggil usersService.deleteAccount(req.user.id)
+
+  // --- TAMBAHAN BARU: Endpoint Ganti Password ---
   @UseGuards(JwtAuthGuard)
   @Patch('password')
   changePassword(@Request() req, @Body() body: any) {
     return this.usersService.changePassword(req.user.id, body.passwordLama, body.passwordBaru);
   }
+  // ----------------------------------------------
 
   // Upload foto profil
   @UseGuards(JwtAuthGuard)

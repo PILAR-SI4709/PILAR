@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
@@ -15,148 +15,17 @@ export default function MainPage() {
   const [events, setEvents] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalEvent: 0, totalRelawan: 0, totalSampahKg: 0 });
   const [loadingEvents, setLoadingEvents] = useState(true);
-  const waveBackRef = useRef<SVGPathElement>(null);
-  const waveFrontRef = useRef<SVGPathElement>(null);
 
   useEffect(() => {
     loadFromStorage();
     setMounted(true);
     fetchData();
-  }, []);
-
-  // GSAP wave morph transition: hero → about us (swipes blue wave bottom → top)
-  useEffect(() => {
-    // Always land at the top on mount. When users navigate back from
-    // /dashboard or /profile, the browser restores the previous scroll
-    // position — but the hero is pinned at scroll 0–80vh, so restored
-    // mid-scroll positions land in the blank pin-spacer zone.
+    // Mulai dari atas halaman saat mount (animasi GSAP sudah dihapus).
     if (typeof window !== 'undefined') {
       if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
       window.scrollTo(0, 0);
     }
-
-    // Cancellation flag — protects against a fast mount→unmount→mount race
-    // (React Strict Mode, Next.js route transitions) where a stale async
-    // setup would finish after cleanup and create a duplicate pin-spacer,
-    // producing the "hero rendered twice" glitch.
-    let cancelled = false;
-    let ctx: any;
-    let cleanupFn: (() => void) | undefined;
-    (async () => {
-      const { gsap } = await import('gsap');
-      const { ScrollTrigger } = await import('gsap/ScrollTrigger');
-      if (cancelled) return;
-      gsap.registerPlugin(ScrollTrigger);
-
-      // Single wave band — wavy top AND wavy bottom, with amplitude that ramps
-      // up on entry and decays on exit so the wave doesn't pop in/out.
-      // Command structure (M, C, C, L, C, C, Z) stays identical across states
-      // so GSAP's attr plugin morphs every number smoothly.
-      const buildStates = (amp: number, phase: number) => {
-        // [topY, bottomY, amplitudeMultiplier] per state.
-        // Tuned so the wave keeps covering the hero↔tentang seam through
-        // the hero scroll-off, and is fully gone exactly at scroll 220vh
-        // (tentang's vertical center — matches the dock-icon endpoint).
-        const anchors: [number, number, number][] = [
-          [ 130, 270, 0    ],   // 0: hidden below — flat, no wave
-          [  60, 220, 0.45 ],   // 1: rising, wave gently forming
-          [ -10, 160, 1    ],   // 2: full cover (bottom well past viewport)
-          [ -50, 105, 1    ],   // 3: still fully covers seam during mid-exit
-          [-120,  40, 0.5  ],   // 4: exiting, bottom still covers late seam
-          [-200, -20, 0    ],   // 5: hidden above — flat, no wave
-        ];
-        return anchors.map(([tY, bY, mult]) => {
-          const wt = (i: number) => tY + Math.sin(phase + i) * amp * mult;
-          const wb = (i: number) => bY + Math.sin(phase + 1.2 + i) * amp * mult * 0.85;
-          return (
-            `M0,${wt(0)} ` +
-            `C15,${wt(1)} 35,${wt(2)} 50,${wt(3)} ` +
-            `C65,${wt(4)} 85,${wt(5)} 100,${wt(6)} ` +
-            `L100,${wb(0)} ` +
-            `C85,${wb(1)} 65,${wb(2)} 50,${wb(3)} ` +
-            `C35,${wb(4)} 15,${wb(5)} 0,${wb(6)} Z`
-          );
-        });
-      };
-
-      // Two layers with different phase + amplitude → dynamic morphing parallax.
-      // Back layer lags slightly behind (lower amp, phase offset) so as the
-      // front crest peaks, the back crest is still rising — that offset is
-      // what creates the "dynamic morphing" depth effect.
-      const backStates  = buildStates(5,  0.6);   // gentler, slower rhythm
-      const frontStates = buildStates(8,  2.9);   // sharper, leads the motion
-
-      ctx = gsap.context(() => {
-        if (waveBackRef.current)  gsap.set(waveBackRef.current,  { attr: { d: backStates[0]  } });
-        if (waveFrontRef.current) gsap.set(waveFrontRef.current, { attr: { d: frontStates[0] } });
-
-        // 1) Pin hero only while the wave is RISING + COVERING. Pin releases
-        //    mid-wave (during the covered phase) so hero slides away and
-        //    tentang slides in behind the curtain of the wave — the user
-        //    never sees a "still on hero" moment when the wave clears.
-        // Dock is fixed-positioned (out of flow), so hero's top sits at
-        // viewport top from scroll 0 — no nav-height offset needed.
-        ScrollTrigger.create({
-          trigger: '#hero',
-          start: 'top top',
-          end: `+=100%`,         // pin for 100vh — widens the blank/transition
-                                 // band between hero and tentang so the wave has
-                                 // more room to fully sweep across.
-          pin: true,
-          pinSpacing: true,
-          anticipatePin: 1,
-        });
-
-        // 2) Wave timeline runs across the FULL journey — through the pin
-        //    and past it — so the wave keeps exiting as tentang scrolls in.
-        //    Anchored to the document (not #hero) because sharing a trigger
-        //    with the pin above makes ScrollTrigger resolve start/end against
-        //    the pin-spacer, which delayed the wave until AFTER the pin ended.
-        //    Using the document decouples the scroll mapping so the wave
-        //    starts rising the moment the user scrolls on hero.
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: document.documentElement,
-            start: 'top top',
-            end: `+=${window.innerHeight * 2.2}`,  // 220vh — wave fully exits at tentang's center
-            scrub: 1,
-          },
-        });
-        for (let i = 1; i < frontStates.length; i++) {
-          const label = `s${i}`;
-          tl.add(label, (i - 1) * 1);
-          if (waveBackRef.current) {
-            tl.to(waveBackRef.current, {
-              attr: { d: backStates[i] },
-              ease: 'none',
-              duration: 1,
-            }, label);
-          }
-          if (waveFrontRef.current) {
-            tl.to(waveFrontRef.current, {
-              attr: { d: frontStates[i] },
-              ease: 'none',
-              duration: 1,
-            }, label);
-          }
-        }
-      });
-
-      cleanupFn = () => {
-        ScrollTrigger.getAll().forEach(t => t.kill());
-        ctx?.revert();
-      };
-
-      // If unmount already happened while gsap was still loading, revert now.
-      if (cancelled) cleanupFn();
-    })();
-
-    return () => {
-      cancelled = true;
-      cleanupFn?.();
-    };
   }, []);
-
 
   const fetchData = async () => {
     try {
@@ -385,14 +254,10 @@ export default function MainPage() {
 
       {/* Statistik Real */}
       <section id="tentang" style={{
-        minHeight: '140vh',      // taller section — gives the wave room to finish
-                                 // exiting and the content a larger canvas
-        padding: '220px 48px 260px 48px',  // larger bottom padding lifts the
-                                            // flex-end content a bit higher from
-                                            // the section's bottom edge
+        padding: '100px 48px',
         background: 'linear-gradient(180deg, #fdfaf5 0%, #f0f7ff 100%)',
         display: 'flex',
-        alignItems: 'flex-end',
+        alignItems: 'center',
         justifyContent: 'center',
       }}>
         <div style={{ maxWidth: '1040px', margin: '0 auto', width: '100%' }}>
@@ -434,6 +299,7 @@ export default function MainPage() {
         </div>
       </section>
 
+      {/* PBI #30 - Syifa Rizani - Fitur Pencarian dan Filter Event Berdasarkan Nama/Lokasi/Status */}
       {/* Event Mendatang */}
       <section id="events" style={{ padding: '100px 48px', background: '#fff' }}>
         <div style={{ maxWidth: '960px', margin: '0 auto' }}>
@@ -584,50 +450,6 @@ export default function MainPage() {
           </div>
         </div>
       </footer>
-
-      {/* GSAP MorphSVG layered ocean transition overlay (hero → about us) */}
-      <div aria-hidden="true" style={{
-        position: 'fixed', top: 0, left: 0,
-        width: '100vw', height: '100vh',
-        pointerEvents: 'none', zIndex: 60,
-        overflow: 'hidden',
-      }}>
-        <svg
-          width="100%" height="100%"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          style={{ overflow: 'visible', display: 'block' }}
-        >
-          <defs>
-            {/* Back layer — slightly deeper blue, sits behind the front crest */}
-            <linearGradient id="_waveBackGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-              <stop offset="0%"   stopColor="#0ea5e9"/>
-              <stop offset="55%"  stopColor="#7dd3fc"/>
-              <stop offset="100%" stopColor="#bae6fd"/>
-            </linearGradient>
-            {/* Front layer — soft blue fading into white at the crest */}
-            <linearGradient id="_waveFrontGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-              <stop offset="0%"   stopColor="#7dd3fc"/>
-              <stop offset="55%"  stopColor="#e0f2fe"/>
-              <stop offset="100%" stopColor="#ffffff"/>
-            </linearGradient>
-          </defs>
-
-          {/* Back wave — renders first (behind), softer rhythm, muted */}
-          <path
-            ref={waveBackRef}
-            fill="url(#_waveBackGrad)"
-            opacity="0.85"
-            d="M0,115 C15,115 35,115 50,115 C65,115 85,115 100,115 L100,260 C85,260 65,260 50,260 C35,260 15,260 0,260 Z"
-          />
-          {/* Front wave — renders on top, sharper crest fading into white */}
-          <path
-            ref={waveFrontRef}
-            fill="url(#_waveFrontGrad)"
-            d="M0,115 C15,115 35,115 50,115 C65,115 85,115 100,115 L100,260 C85,260 65,260 50,260 C35,260 15,260 0,260 Z"
-          />
-        </svg>
-      </div>
     </div>
   );
 }

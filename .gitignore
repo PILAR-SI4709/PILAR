@@ -1,0 +1,59 @@
+# ============================================
+# PILAR App — .gitignore (root)
+# ============================================
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+.next/
+out/
+build/
+
+# Environment — JANGAN PERNAH COMMIT
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
+
+# Prisma
+prisma/migrations/dev/
+
+# Uploads (file lokal, tidak perlu di repo)
+uploads/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.build.tsbuildinfo
+
+# Misc
+.turbo/
+.vercel/
+coverage/
+
+# Claude
+CLAUDE.md

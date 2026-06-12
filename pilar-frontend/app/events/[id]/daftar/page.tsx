@@ -6,12 +6,17 @@ import { useAuthStore } from '@/lib/store';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
+// TASK 2 - Style pesan error inline
+const errTextStyle: React.CSSProperties = { fontSize: '12px', color: '#dc2626', marginTop: '6px' };
+
+// TASK 4 - Pilihan kesehatan; `wajib: true` harus dicentang, jika tidak
+// pendaftaran akan ditolak otomatis oleh sistem.
 const kesehatanOptions = [
-  { key: 'tidakAdaPenyakitJantung', label: 'Tidak memiliki penyakit jantung' },
-  { key: 'tidakAdaAsma',           label: 'Tidak memiliki asma atau gangguan pernapasan' },
-  { key: 'bisaBerjalanJauh',        label: 'Mampu berjalan jauh lebih dari 2 km' },
-  { key: 'tidakAlergiLaut',         label: 'Tidak alergi terhadap lingkungan laut' },
-  { key: 'tidakHamilAtauMenyusui',   label: 'Tidak dalam kondisi hamil atau menyusui' },
+  { key: 'tidakAdaPenyakitJantung', label: 'Tidak memiliki penyakit jantung', wajib: false },
+  { key: 'tidakAdaAsma',           label: 'Tidak memiliki asma atau gangguan pernapasan', wajib: false },
+  { key: 'bisaBerjalanJauh',        label: 'Mampu berjalan jauh lebih dari 2 km', wajib: true },
+  { key: 'tidakAlergiLaut',         label: 'Tidak alergi terhadap lingkungan laut', wajib: false },
+  { key: 'tidakHamilAtauMenyusui',   label: 'Tidak dalam kondisi hamil atau menyusui', wajib: false },
 ];
 
 export default function FormPendaftaranPage() {
@@ -27,6 +32,8 @@ export default function FormPendaftaranPage() {
     motivasi: '', izin: false,
     kesehatan: {} as Record<string, boolean>,
   });
+  // TASK 2 - State error per-field untuk validasi inline
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     loadFromStorage();
@@ -46,17 +53,59 @@ export default function FormPendaftaranPage() {
     } catch { router.push('/'); }
   };
 
-  const setField = (key: string, val: any) =>
+  const setField = (key: string, val: any) => {
     setForm(p => ({ ...p, [key]: val }));
+    setErrors(e => ({ ...e, [key]: '' })); // bersihkan error field saat user mengetik
+  };
 
   const toggleKesehatan = (key: string) =>
     setForm(p => ({ ...p, kesehatan: { ...p.kesehatan, [key]: !p.kesehatan[key] } }));
 
+  // TASK 2 - Validasi sisi client (selaras dengan DTO backend)
+  const hitungUmur = (tgl: string) => {
+    const lahir = new Date(tgl);
+    const now = new Date();
+    let umur = now.getFullYear() - lahir.getFullYear();
+    const belum = now.getMonth() < lahir.getMonth() || (now.getMonth() === lahir.getMonth() && now.getDate() < lahir.getDate());
+    if (belum) umur--;
+    return umur;
+  };
+
+  const validateStep = (s: number): boolean => {
+    const e: Record<string, string> = {};
+    if (s === 1) {
+      if (!form.noHp.trim()) e.noHp = 'Nomor HP wajib diisi';
+      else if (!/^(\+62|62|0)[0-9]{8,13}$/.test(form.noHp.trim())) e.noHp = 'Nomor HP tidak valid (08xxxx atau +62xxxx, 10-15 digit)';
+    }
+    if (s === 2) {
+      if (!form.nik.trim()) e.nik = 'NIK wajib diisi';
+      else if (!/^\d{16}$/.test(form.nik.trim())) e.nik = 'NIK harus tepat 16 digit angka';
+      if (!form.tanggalLahir) e.tanggalLahir = 'Tanggal lahir wajib diisi';
+      else if (new Date(form.tanggalLahir) > new Date()) e.tanggalLahir = 'Tanggal lahir tidak boleh di masa depan';
+      else if (hitungUmur(form.tanggalLahir) < 17) e.tanggalLahir = 'Umur minimal 17 tahun untuk mendaftar';
+      if (!form.alamat.trim()) e.alamat = 'Alamat wajib diisi';
+    }
+    if (s === 3) {
+      if (!form.motivasi.trim()) e.motivasi = 'Motivasi wajib diisi';
+      else if (form.motivasi.length > 500) e.motivasi = 'Motivasi maksimal 500 karakter';
+    }
+    setErrors(prev => ({ ...prev, ...e }));
+    return Object.keys(e).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateStep(step)) setStep(s => s + 1);
+  };
+
   const handleSubmit = async () => {
+    // Validasi ulang seluruh langkah sebelum kirim
+    for (let s = 1; s <= 3; s++) {
+      if (!validateStep(s)) { setStep(s); toast.error('Periksa kembali data yang belum valid'); return; }
+    }
     if (!form.izin) { toast.error('Harap centang pernyataan izin'); return; }
     setLoading(true);
     try {
-      await api.post('/pendaftaran', {
+      const res = await api.post('/pendaftaran', {
         eventId,
         motivasi: form.motivasi,
         kesehatan: form.kesehatan,
@@ -66,8 +115,13 @@ export default function FormPendaftaranPage() {
         tanggalLahir: form.tanggalLahir,
         noHp: form.noHp,
       });
-      toast.success('Pendaftaran berhasil! Menunggu persetujuan admin.');
-      setTimeout(() => router.push(`/events/${eventId}`), 1000);
+      // TASK 4 - Beri tahu bila pendaftaran ditolak otomatis karena kriteria kesehatan.
+      if (res.data?.autoRejected) {
+        toast.error('Pendaftaran ditolak otomatis: tidak memenuhi kriteria kesehatan wajib.', { duration: 5000 });
+      } else {
+        toast.success('Pendaftaran berhasil! Menunggu persetujuan admin.');
+      }
+      setTimeout(() => router.push(`/events/${eventId}`), 1200);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Pendaftaran gagal');
     } finally { setLoading(false); }
@@ -140,7 +194,9 @@ export default function FormPendaftaranPage() {
                 <div>
                   <label className="label">Nomor HP</label>
                   <input className="input" type="tel" placeholder="08xxxxxxxxxx"
-                    value={form.noHp} onChange={e => setField('noHp', e.target.value)}/>
+                    value={form.noHp} onChange={e => setField('noHp', e.target.value)}
+                    style={errors.noHp ? { borderColor: '#dc2626' } : undefined}/>
+                  {errors.noHp && <p style={errTextStyle}>{errors.noHp}</p>}
                 </div>
               </div>
             </div>
@@ -154,19 +210,24 @@ export default function FormPendaftaranPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
                   <label className="label">NIK (Nomor Induk Kependudukan)</label>
-                  <input className="input" placeholder="16 digit NIK" maxLength={16}
-                    value={form.nik} onChange={e => setField('nik', e.target.value)}/>
+                  <input className="input" placeholder="16 digit NIK" maxLength={16} inputMode="numeric"
+                    value={form.nik} onChange={e => setField('nik', e.target.value.replace(/\D/g, ''))}
+                    style={errors.nik ? { borderColor: '#dc2626' } : undefined}/>
+                  {errors.nik && <p style={errTextStyle}>{errors.nik}</p>}
                 </div>
                 <div>
                   <label className="label">Tanggal Lahir</label>
-                  <input className="input" type="date"
-                    value={form.tanggalLahir} onChange={e => setField('tanggalLahir', e.target.value)}/>
+                  <input className="input" type="date" max={new Date().toISOString().slice(0, 10)}
+                    value={form.tanggalLahir} onChange={e => setField('tanggalLahir', e.target.value)}
+                    style={errors.tanggalLahir ? { borderColor: '#dc2626' } : undefined}/>
+                  {errors.tanggalLahir && <p style={errTextStyle}>{errors.tanggalLahir}</p>}
                 </div>
                 <div>
                   <label className="label">Alamat Lengkap</label>
                   <textarea className="input" rows={3} placeholder="Jl. ..."
                     value={form.alamat} onChange={e => setField('alamat', e.target.value)}
-                    style={{ resize: 'none' }}/>
+                    style={{ resize: 'none', ...(errors.alamat ? { borderColor: '#dc2626' } : {}) }}/>
+                  {errors.alamat && <p style={errTextStyle}>{errors.alamat}</p>}
                 </div>
               </div>
             </div>
@@ -178,13 +239,13 @@ export default function FormPendaftaranPage() {
               <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#0c4a6e', marginBottom: '4px' }}>Motivasi</h2>
               <p style={{ fontSize: '13px', color: '#7baac7', marginBottom: '24px' }}>Ceritakan alasan kamu ingin bergabung</p>
               <label className="label">Mengapa kamu ingin menjadi relawan di event ini?</label>
-              <textarea className="input" rows={6}
+              <textarea className="input" rows={6} maxLength={500}
                 placeholder="Tuliskan motivasimu di sini..."
                 value={form.motivasi} onChange={e => setField('motivasi', e.target.value)}
-                style={{ resize: 'none' }}/>
-              <p style={{ fontSize: '12px', color: '#b0c8d8', marginTop: '6px' }}>
-                {form.motivasi.length}/500 karakter
-              </p>
+                style={{ resize: 'none', ...(errors.motivasi ? { borderColor: '#dc2626' } : {}) }}/>
+              {errors.motivasi
+                ? <p style={errTextStyle}>{errors.motivasi}</p>
+                : <p style={{ fontSize: '12px', color: '#b0c8d8', marginTop: '6px' }}>{form.motivasi.length}/500 karakter</p>}
             </div>
           )}
 
@@ -192,7 +253,10 @@ export default function FormPendaftaranPage() {
           {step === 4 && (
             <div>
               <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#0c4a6e', marginBottom: '4px' }}>Kondisi Kesehatan</h2>
-              <p style={{ fontSize: '13px', color: '#7baac7', marginBottom: '24px' }}>Centang kondisi yang sesuai dengan keadaanmu</p>
+              <p style={{ fontSize: '13px', color: '#7baac7', marginBottom: '16px' }}>Centang kondisi yang sesuai dengan keadaanmu</p>
+              <div style={{ marginBottom: '16px', padding: '10px 12px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', fontSize: '12px', color: '#92400e', lineHeight: 1.5 }}>
+                Pernyataan bertanda <strong>WAJIB</strong> harus dicentang. Jika tidak, pendaftaran akan otomatis ditolak demi keselamatan kegiatan.
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {kesehatanOptions.map(opt => (
                   <label key={opt.key} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '12px', borderRadius: '10px', border: '1px solid', borderColor: form.kesehatan[opt.key] ? '#bae6fd' : '#f5f0e8', background: form.kesehatan[opt.key] ? '#f0f9ff' : '#fff', transition: 'all 0.15s' }}>
@@ -204,7 +268,10 @@ export default function FormPendaftaranPage() {
                     }} onClick={() => toggleKesehatan(opt.key)}>
                       {form.kesehatan[opt.key] && <svg width="10" height="10" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round"/></svg>}
                     </div>
-                    <span style={{ fontSize: '13.5px', color: '#1a2332' }}>{opt.label}</span>
+                    <span style={{ fontSize: '13.5px', color: '#1a2332' }}>
+                      {opt.label}
+                      {opt.wajib && <span style={{ marginLeft: '8px', fontSize: '10px', fontWeight: 700, color: '#0369a1', background: '#e0f2fe', padding: '1px 6px', borderRadius: '6px' }}>WAJIB</span>}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -242,7 +309,7 @@ export default function FormPendaftaranPage() {
             ) : <div/>}
 
             {step < 5 ? (
-              <button onClick={() => setStep(s => s + 1)} className="btn-primary">Lanjut</button>
+              <button onClick={handleNext} className="btn-primary">Lanjut</button>
             ) : (
               <button onClick={handleSubmit} disabled={loading} className="btn-primary">
                 {loading ? 'Mengirim...' : 'Kirim Pendaftaran'}

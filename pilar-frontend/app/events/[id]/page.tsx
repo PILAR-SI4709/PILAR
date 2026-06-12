@@ -94,9 +94,11 @@ export default function EventDetailPage() {
   );
   if (!event) return null;
 
-  const sisaKuota = event.kuota - (event._count?.pendaftaran || 0);
+  // TASK 6 - Sisa kuota = jumlah dibutuhkan (kuota) - relawan DITERIMA.
+  const relawanDiterima = event.relawanDiterima ?? 0;
+  const sisaKuota = event.kuota - relawanDiterima;
   const kuotaPenuh = sisaKuota <= 0;
-  const persen = Math.min(100, ((event._count?.pendaftaran || 0) / event.kuota) * 100);
+  const persen = Math.min(100, (relawanDiterima / event.kuota) * 100);
 
   const statusBadge = ({
     UPCOMING: { bg: 'linear-gradient(135deg, #e0f2fe, #f0f9ff)', color: '#0369a1', label: 'Pendaftaran Dibuka' },
@@ -275,6 +277,7 @@ export default function EventDetailPage() {
                 <span style={{ width: '4px', height: '16px', borderRadius: '2px', background: 'linear-gradient(135deg,#0ea5e9,#0369a1)', display: 'inline-block' }}/>
                 Detail Kegiatan
               </h2>
+              {/* TASK 6 - Nilai diambil dinamis dari DB (diisi admin); fallback default jika kosong. */}
               {[
                 { label: 'Peserta', content: (
                   <div style={{ display: 'flex', gap: '20px' }}>
@@ -282,14 +285,14 @@ export default function EventDetailPage() {
                     <span>Sisa kuota: <strong style={{ color: kuotaPenuh ? '#dc2626' : '#059669' }}>{sisaKuota}</strong></span>
                   </div>
                 )},
-                { label: 'Tugas Relawan', content: 'Mengikuti program bersih pantai hingga selesai, memungut sampah, dan memilah berdasarkan jenisnya.' },
-                { label: 'Kriteria Relawan', content: 'Memiliki kepedulian terhadap lingkungan, sehat jasmani, dan mampu berjalan di area pantai.' },
-                { label: 'Perlengkapan', content: 'Pakaian dan alas kaki yang sesuai untuk pantai, sarung tangan (disediakan panitia), dan minum secukupnya.' },
-                { label: 'Domisili', content: 'Terbuka untuk semua daerah' },
+                { label: 'Tugas Relawan', content: event.tugasRelawan?.trim() || 'Mengikuti program bersih pantai hingga selesai, memungut sampah, dan memilah berdasarkan jenisnya.' },
+                { label: 'Kriteria Relawan', content: event.kriteriaRelawan?.trim() || 'Memiliki kepedulian terhadap lingkungan, sehat jasmani, dan mampu berjalan di area pantai.' },
+                { label: 'Perlengkapan', content: event.perlengkapan?.trim() || 'Pakaian dan alas kaki yang sesuai untuk pantai, sarung tangan (disediakan panitia), dan minum secukupnya.' },
+                { label: 'Domisili', content: event.domisili?.trim() || 'Terbuka untuk semua daerah' },
               ].map((item, i) => (
                 <div key={i} style={{ paddingBottom: '14px', marginBottom: '14px', borderBottom: i < 4 ? '1px solid rgba(14,165,233,0.04)' : 'none' }}>
                   <div style={{ fontSize: '11px', fontWeight: '700', color: '#0ea5e9', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>{item.label}</div>
-                  <div style={{ fontSize: '13.5px', color: '#4a6580', lineHeight: 1.6 }}>{item.content}</div>
+                  <div style={{ fontSize: '13.5px', color: '#4a6580', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{item.content}</div>
                 </div>
               ))}
             </div>
@@ -328,7 +331,7 @@ export default function EventDetailPage() {
               {/* Progress kuota */}
               <div style={{ marginBottom: '18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#7baac7', marginBottom: '8px' }}>
-                  <span style={{ fontWeight: '500' }}>{event._count?.pendaftaran || 0} terdaftar</span>
+                  <span style={{ fontWeight: '500' }}>{relawanDiterima} diterima</span>
                   <span style={{ color: kuotaPenuh ? '#dc2626' : '#0369a1', fontWeight: '600' }}>{event.kuota} kapasitas</span>
                 </div>
                 <div style={{ height: '6px', background: 'rgba(14,165,233,0.06)', borderRadius: '3px', overflow: 'hidden' }}>

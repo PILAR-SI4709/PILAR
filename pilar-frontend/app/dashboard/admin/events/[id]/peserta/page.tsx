@@ -8,27 +8,59 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import Link from 'next/link';
 
+// TASK 3 - Label form kesehatan (selaras dengan form pendaftaran & backend)
+const KESEHATAN_LABELS: { key: string; label: string }[] = [
+  { key: 'tidakAdaPenyakitJantung', label: 'Tidak memiliki penyakit jantung' },
+  { key: 'tidakAdaAsma', label: 'Tidak memiliki asma atau gangguan pernapasan' },
+  { key: 'bisaBerjalanJauh', label: 'Mampu berjalan jauh lebih dari 2 km' },
+  { key: 'tidakAlergiLaut', label: 'Tidak alergi terhadap lingkungan laut' },
+  { key: 'tidakHamilAtauMenyusui', label: 'Tidak dalam kondisi hamil atau menyusui' },
+];
+// Pilihan wajib (harus dicentang) — ditandai khusus di UI admin
+const KESEHATAN_WAJIB = ['bisaBerjalanJauh'];
+
 export default function PesertaPage() {
   const { id: eventId } = useParams();
   const router = useRouter();
   const [event, setEvent] = useState<any>(null);
   const [peserta, setPeserta] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState('');
   const [filter, setFilter] = useState('ALL');
 
   useEffect(() => { fetchData(); }, []);
 
   // #PBI16 - Lihat Peserta: Mengambil data event dan daftar peserta dari API
+  // Catatan: kedua request di-handle terpisah supaya kegagalan salah satu
+  // tidak membuat halaman ter-redirect ke dashboard (bug navigasi sebelumnya).
   const fetchData = async () => {
+    setLoading(true);
+    setErrorMsg('');
+
+    // 1. Ambil detail event. Hanya redirect jika event benar-benar tidak ada (404).
     try {
-      const [evRes, pRes] = await Promise.all([
-        api.get(`/events/${eventId}`),
-        api.get(`/pendaftaran/event/${eventId}`),
-      ]);
+      const evRes = await api.get(`/events/${eventId}`);
       setEvent(evRes.data);
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        toast.error('Event tidak ditemukan');
+        router.push('/dashboard/admin/relawan');
+        return;
+      }
+      setErrorMsg('Gagal memuat detail event. Coba muat ulang halaman.');
+      setLoading(false);
+      return;
+    }
+
+    // 2. Ambil daftar pendaftar. Jika gagal, tampilkan pesan error — JANGAN redirect.
+    try {
+      const pRes = await api.get(`/pendaftaran/event/${eventId}`);
       setPeserta(pRes.data);
-    } catch { router.push('/dashboard/admin'); }
-    finally { setLoading(false); }
+    } catch {
+      setErrorMsg('Gagal memuat daftar relawan. Coba muat ulang halaman.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // #PBI17 - Update Status Partisipasi: Mengirim perubahan status (Terima/Tolak) ke API
@@ -67,6 +99,13 @@ return (
         Input Laporan
       </Link>
     </div>
+
+      {errorMsg && (
+        <div style={{ marginBottom: '16px', padding: '12px 16px', borderRadius: '12px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+          <span>{errorMsg}</span>
+          <button onClick={fetchData} style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #fecaca', background: '#fff', color: '#dc2626', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>Muat Ulang</button>
+        </div>
+      )}
 
       {/* Filter tabs */}
       <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', background: '#f5f0e8', padding: '4px', borderRadius: '10px', width: 'fit-content' }}>
@@ -135,6 +174,41 @@ return (
                 <div style={{ fontSize: '10px', color: '#b0c8d8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>Motivasi</div>
                 <p style={{ fontSize: '12px', color: '#4a6580', lineHeight: 1.6 }}>{p.motivasi}</p>
               </div>
+
+              {/* TASK 3 - Hasil form kesehatan */}
+              <div style={{ marginTop: '10px', padding: '12px', background: '#f8fbff', borderRadius: '8px', border: '1px solid rgba(14,165,233,0.08)' }}>
+                <div style={{ fontSize: '10px', color: '#b0c8d8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Form Kesehatan</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {KESEHATAN_LABELS.map(opt => {
+                    const dicentang = !!(p.kesehatan && (p.kesehatan as any)[opt.key]);
+                    const wajib = KESEHATAN_WAJIB.includes(opt.key);
+                    return (
+                      <div key={opt.key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: dicentang ? '#059669' : '#fef2f2', border: dicentang ? 'none' : '1px solid #fecaca' }}>
+                          {dicentang
+                            ? <svg width="9" height="9" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round"/></svg>
+                            : <svg width="9" height="9" viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="#dc2626" strokeWidth="2" fill="none" strokeLinecap="round"/></svg>}
+                        </span>
+                        <span style={{ fontSize: '12px', color: dicentang ? '#4a6580' : '#dc2626' }}>
+                          {opt.label}
+                          {wajib && <span style={{ marginLeft: '6px', fontSize: '10px', fontWeight: 600, color: '#0369a1', background: '#e0f2fe', padding: '1px 6px', borderRadius: '6px' }}>WAJIB</span>}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* TASK 4 - Indikator ditolak otomatis karena kriteria kesehatan */}
+              {p.autoRejected && (
+                <div style={{ marginTop: '10px', padding: '10px 12px', background: '#fef2f2', borderRadius: '8px', border: '1px solid #fecaca', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" style={{ flexShrink: 0, marginTop: '1px' }}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#dc2626', marginBottom: '2px' }}>Ditolak otomatis oleh sistem</div>
+                    <div style={{ fontSize: '11.5px', color: '#b91c1c', lineHeight: 1.5 }}>{p.alasanReject || 'Tidak memenuhi kriteria kesehatan wajib.'}</div>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
