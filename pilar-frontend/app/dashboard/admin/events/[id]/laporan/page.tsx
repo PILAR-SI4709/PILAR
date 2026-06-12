@@ -139,7 +139,7 @@ export default function AdminLaporanEventPage() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-            <Link href={`/dashboard/admin/events/${eventId}/peserta`} style={{ padding: '9px 16px', borderRadius: '10px', background: '#f8fafc', color: '#4a6580', textDecoration: 'none', fontSize: '13px', fontWeight: '500' }}>Relawan</Link>
+            <Link href={`/dashboard/admin/relawan?event=${eventId}`} style={{ padding: '9px 16px', borderRadius: '10px', background: '#f8fafc', color: '#4a6580', textDecoration: 'none', fontSize: '13px', fontWeight: '500' }}>Relawan</Link>
             <Link href={`/laporan/${eventId}`} style={{ padding: '9px 16px', borderRadius: '10px', background: 'linear-gradient(135deg,#0ea5e9,#0369a1)', color: '#fff', textDecoration: 'none', fontSize: '13px', fontWeight: '600', boxShadow: '0 4px 14px rgba(14,165,233,0.25)' }}>Lihat Laporan</Link>
           </div>
         </div>

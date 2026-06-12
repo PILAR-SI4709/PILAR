@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 export default function DashboardAdmin() {
   const { user, loadFromStorage } = useAuthStore();
   const router = useRouter();
-  const [stats, setStats] = useState({ totalEvent: 0, totalRelawan: 0, totalSampahKg: 0 });
+  const [stats, setStats] = useState<{ totalEvent: number; totalRelawan: number; totalSampahKg: number; sampahPerJenis: { jenis: string; totalKg: number }[] }>({ totalEvent: 0, totalRelawan: 0, totalSampahKg: 0, sampahPerJenis: [] });
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -115,6 +115,50 @@ export default function DashboardAdmin() {
         ))}
       </div>
 
+      {/* PBI #22 - Muhammad Faris Alfaqih - Komposisi Sampah Terpilah per Jenis */}
+      {(() => {
+        const jenisColor = (j: string) => ({
+          Plastik: '#0ea5e9', Kaca: '#06b6d4', Logam: '#64748b',
+          Organik: '#16a34a', Kertas: '#d97706', Kain: '#9333ea', Lainnya: '#94a3b8',
+        }[j] || '#0ea5e9');
+        const list = stats.sampahPerJenis || [];
+        const maxKg = list.reduce((m, s) => Math.max(m, s.totalKg), 0) || 1;
+        return (
+          <div style={{ background: '#fff', borderRadius: '18px', border: '1px solid rgba(14,165,233,0.06)', padding: '24px 26px', marginBottom: '32px', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', animation: '_adminFade 0.5s ease 0.25s both' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #fef3c7, #fffbeb)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="1.8"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+              </div>
+              <div>
+                <div style={{ fontSize: '11px', color: '#7baac7', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: '500' }}>Statistik</div>
+                <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#0c4a6e', letterSpacing: '-0.01em' }}>Komposisi Sampah per Jenis</h2>
+              </div>
+            </div>
+
+            {list.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '28px', color: '#b0c8d8', fontSize: '13px' }}>Belum ada data sampah tercatat</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {list.map((s) => {
+                  const c = jenisColor(s.jenis);
+                  return (
+                    <div key={s.jenis} style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div style={{ width: '72px', fontSize: '13px', fontWeight: '600', color: '#0c4a6e', flexShrink: 0 }}>{s.jenis}</div>
+                      <div style={{ flex: 1, height: '10px', borderRadius: '6px', background: '#f0f9ff', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${Math.max(4, (s.totalKg / maxKg) * 100)}%`, background: `linear-gradient(to right, ${c}99, ${c})`, borderRadius: '6px', transition: 'width 0.6s cubic-bezier(0.4,0,0.2,1)' }}/>
+                      </div>
+                      <div style={{ width: '80px', textAlign: 'right', fontSize: '13px', fontWeight: '600', color: c, flexShrink: 0 }}>
+                        {s.totalKg.toLocaleString('id-ID')} kg
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* PBI #23 - Muhammad Faris Alfaqih - Ringkasan Laporan Kegiatan di Dashboard Admin */}      {/* Tabel Event */}
       <div style={{ background: '#fff', borderRadius: '18px', border: '1px solid rgba(14,165,233,0.06)', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', animation: '_adminFade 0.5s ease 0.3s both' }}>
         <div style={{ padding: '20px 22px', borderBottom: '1px solid rgba(14,165,233,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -170,7 +214,11 @@ export default function DashboardAdmin() {
                     </td>
                     <td style={{ padding: '14px 18px' }}>
                       <div style={{ display: 'flex', gap: '6px' }}>
-                        <Link href={`/dashboard/admin/events/${e.id}/peserta`} className="admin-action" style={{ fontSize: '12px', color: '#0369a1', textDecoration: 'none', padding: '5px 10px', background: 'rgba(14,165,233,0.06)', borderRadius: '7px', fontWeight: '500' }}>Relawan</Link>
+                        <Link href={`/dashboard/admin/relawan?event=${e.id}`} className="admin-action" style={{ fontSize: '12px', color: '#0369a1', textDecoration: 'none', padding: '5px 10px', background: 'rgba(14,165,233,0.06)', borderRadius: '7px', fontWeight: '500' }}>Relawan</Link>
+                        <Link href={`/dashboard/admin/events/${e.id}/laporan`} className="admin-action" style={{ fontSize: '12px', color: '#0369a1', textDecoration: 'none', padding: '5px 10px', background: 'rgba(14,165,233,0.06)', borderRadius: '7px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+                          Laporan
+                        </Link>
                         <Link href={`/dashboard/admin/events/${e.id}/edit`} className="admin-action" style={{ fontSize: '12px', color: '#4a6580', textDecoration: 'none', padding: '5px 10px', background: '#f8fafc', borderRadius: '7px', fontWeight: '500' }}>Edit</Link>
                         <button onClick={() => handleDelete(e.id)} className="admin-action" style={{ fontSize: '12px', color: '#dc2626', background: '#fef2f2', border: 'none', cursor: 'pointer', padding: '5px 10px', borderRadius: '7px', fontWeight: '500' }}>Hapus</button>
                       </div>

@@ -127,11 +127,12 @@ export default function AdminEventsPage() {
                 </span>
 
                 <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                  <Link href={`/dashboard/admin/events/${e.id}/peserta`} className="ae-action" style={{ fontSize: '12px', color: '#0369a1', textDecoration: 'none', padding: '6px 12px', background: 'rgba(14,165,233,0.06)', borderRadius: '8px', fontWeight: '600' }}>
+                  <Link href={`/dashboard/admin/relawan?event=${e.id}`} className="ae-action" style={{ fontSize: '12px', color: '#0369a1', textDecoration: 'none', padding: '6px 12px', background: 'rgba(14,165,233,0.06)', borderRadius: '8px', fontWeight: '600' }}>
                     Relawan
                   </Link>
-                  <Link href={`/laporan/${e.id}`} className="ae-action" style={{ fontSize: '12px', color: '#4a6580', textDecoration: 'none', padding: '6px 12px', background: '#f8fafc', borderRadius: '8px', fontWeight: '500' }}>
-                    Laporan
+                  <Link href={`/dashboard/admin/events/${e.id}/laporan`} className="ae-action" style={{ fontSize: '12px', color: '#0369a1', textDecoration: 'none', padding: '6px 12px', background: 'rgba(14,165,233,0.06)', borderRadius: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+                    Input Laporan
                   </Link>
                   <Link href={`/dashboard/admin/events/${e.id}/edit`} className="ae-action" style={{ fontSize: '12px', color: '#4a6580', textDecoration: 'none', padding: '6px 12px', background: '#f8fafc', borderRadius: '8px', fontWeight: '500' }}>
                     Edit
